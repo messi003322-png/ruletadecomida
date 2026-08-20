@@ -13,10 +13,10 @@ zip.extractAllTo(OUT, true);
 
 function cleanAds(file) {
   let text = fs.readFileSync(file, 'utf8');
-  text = text.replace(/<style[^>]*id=["']mrmnd-ad-layout["'][^>]*>[\\s\\S]*?<\\/style>/gi, '');
-  text = text.replace(/<script\\b[^>]*(?:mrmnd\\.com|monetag)[^>]*>[\\s\\S]*?<\\/script>/gi, '');
-  text = text.replace(/<div[^>]*class=["'][^"']*mrmnd-ad-slot[^"']*["'][^>]*>[\\s\\S]*?<\\/div>\\s*<\\/div>/gi, '');
-  text = text.replace(/\\s+data-mnd[a-z0-9-]+=["'][^"']*["']/gi, '');
+  text = text.replace(/<style[^>]*id=["']mrmnd-ad-layout["'][^>]*>[\s\S]*?<\/style>/gi, '');
+  text = text.replace(/<script\b[^>]*(?:mrmnd\.com|monetag)[^>]*>[\s\S]*?<\/script>/gi, '');
+  text = text.replace(/<div[^>]*class=["'][^"']*mrmnd-ad-slot[^"']*["'][^>]*>[\s\S]*?<\/div>\s*<\/div>/gi, '');
+  text = text.replace(/\s+data-mnd[a-z0-9-]+=["'][^"']*["']/gi, '');
   fs.writeFileSync(file, text);
 }
 
@@ -24,7 +24,7 @@ function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full);
-    else if (/\\.(html?|css|js|json|xml)$/i.test(entry.name)) cleanAds(full);
+    else if (/\.(html?|css|js|json|xml)$/i.test(entry.name)) cleanAds(full);
   }
 }
 
