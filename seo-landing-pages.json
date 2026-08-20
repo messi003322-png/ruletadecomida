@@ -1,6 +1,7 @@
 {
   "strategy": "high-intent food discovery pages",
-  "note": "Generated as a planning manifest; only publish pages with genuinely useful, unique content.",
+  "status": "ready-for-production-build",
+  "note": "Only publish pages with genuinely useful, unique content.",
   "clusters": [
     "que-comer-hoy",
     "que-comer-esta-noche",
