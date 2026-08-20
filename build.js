@@ -22,7 +22,7 @@ h1,h2,h3{letter-spacing:-.025em}
 #spinBtn{min-height:54px;box-shadow:0 12px 26px rgba(28,25,23,.16)!important}
 #result{filter:drop-shadow(0 12px 28px rgba(28,25,23,.08))}
 button,a{touch-action:manipulation}.mrmnd-ad-slot{max-width:100%;overflow:hidden}
-.seo-hub{max-width:1200px;margin:0 auto;padding:48px 20px}.seo-hub-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.seo-card{display:block;padding:22px;border:1px solid var(--rf-border);border-radius:20px;background:#fff;box-shadow:var(--rf-shadow);text-decoration:none;color:inherit;transition:transform .2s ease,box-shadow .2s ease;line-height:1.55}.seo-card:hover{transform:translateY(-3px);box-shadow:0 18px 44px rgba(28,25,23,.12)}
+.seo-hub{max-width:1200px;margin:0 auto;padding:48px 20px}.seo-hub-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.seo-card{display:block;padding:22px;border:1px solid var(--rf-border);border-radius:20px;background:#fff;box-shadow:var(--rf-shadow);text-decoration:none;color:inherit;transition:transform .2s ease,box-shadow .2s ease;line-height:1.55}.seo-card strong{display:block;margin:0 0 12px!important;line-height:1.3}.seo-card span{display:block;margin:0!important;line-height:1.65}.seo-card:hover{transform:translateY(-3px);box-shadow:0 18px 44px rgba(28,25,23,.12)}
 .rf-footer-brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.rf-footer-brand strong{display:inline-flex;align-items:center;font-size:1.1rem}.rf-footer-brand p{width:100%;margin:.55rem 0 0;line-height:1.6}.rf-footer-grid{gap:18px 26px!important;line-height:1.55}.rf-footer-grid a{display:inline-block;margin-bottom:4px}
 @media (max-width:767px){header .mx-auto{min-height:60px;height:auto;padding-top:6px;padding-bottom:6px}header nav{gap:2px!important}header nav a{padding:.55rem .62rem!important;font-size:.82rem!important}h1{font-size:clamp(2.05rem,9.5vw,3rem)!important;line-height:1.06!important}#ruleta .relative.w-full{max-width:min(84vw,340px)!important}#spinBtn{width:min(100%,300px)}.seo-hub{padding:34px 16px}.seo-hub-grid{grid-template-columns:1fr;gap:18px}.rf-footer-grid{row-gap:16px!important;column-gap:18px!important}}
 @media (min-width:768px) and (max-width:1023px){.seo-hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -38,47 +38,10 @@ const footerLinks = [
 function esc(value){return String(value).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function pageUrl(file){const rel=path.relative(OUT,file).replace(/\\/g,'/');let u='/'+rel;if(u.endsWith('/index.html'))u=u.slice(0,-10);else if(u.endsWith('.html'))u=u.slice(0,-5);if(u==='/index')u='/';return SITE+(u==='/'?'':u);}
 function footerHtml(){return '<footer class="rf-final-footer"><div class="rf-footer-inner"><div class="rf-footer-brand"><strong>Ruleta de Comida</strong><p>Decide qué comer o cenar en segundos. 20 comidas · 79 ciudades.</p></div><nav class="rf-footer-links" aria-label="Guías de comida"><div class="rf-footer-grid">'+footerLinks.map(function(item){return '<a href="'+SITE+item[1]+'">'+item[0]+'</a>';}).join('')+'</div></nav><p class="rf-footer-copy">© 2026 Ruleta de Comida</p></div></footer>';}
-
-function cleanAds(text){
-  text=text.replace(new RegExp('<style[^>]*id=["\\\']mrmnd-ad-layout["\\\'][^>]*>[\\s\\S]*?<\\/style>','gi'),'');
-  text=text.replace(new RegExp('<script\\b[^>]*(?:mrmnd\\.com|monetag)[^>]*>[\\s\\S]*?<\\/script>','gi'),'');
-  text=text.replace(new RegExp('\\s+data-mnd[a-z0-9-]+=["\\\'][^"\\\']*["\\\']','gi'),'');
-  return text;
-}
+function cleanAds(text){text=text.replace(new RegExp('<style[^>]*id=["\\\']mrmnd-ad-layout["\\\'][^>]*>[\\s\\S]*?<\\/style>','gi'),'');text=text.replace(new RegExp('<script\\b[^>]*(?:mrmnd\\.com|monetag)[^>]*>[\\s\\S]*?<\\/script>','gi'),'');text=text.replace(new RegExp('\\s+data-mnd[a-z0-9-]+=["\\\'][^"\\\']*["\\\']','gi'),'');return text;}
 function cleanFooter(text){return text.replace(new RegExp('<footer\\b[\\s\\S]*?<\\/footer>','gi'),footerHtml());}
-function injectSeo(file,text){
-  if(text.indexOf('</head>')===-1)return text;
-  const rel=path.relative(OUT,file).replace(/\\/g,'/');
-  const cleanPath=rel.replace(new RegExp('/index\\.html$','i'),'').replace(new RegExp('\\.html$','i'),'').replace(/[-_]+/g,' ').replace(/\//g,' ').trim();
-  const isHome=rel.toLowerCase()==='index.html';
-  let title=isHome?'Ruleta de Comida | ¿Qué comer hoy? Ideas para cenar':(cleanPath?cleanPath.replace(/\b\w/g,function(c){return c.toUpperCase();})+' | Ruleta de Comida':'Ruleta de Comida | ¿Qué comer hoy?');
-  if(title.length>60)title=title.slice(0,57).replace(/\s+$/,'')+'...';
-  const description=isHome?'¿Qué comer hoy? Gira la ruleta de comida y descubre una idea rápida. Gratis, sin registro y con guías para elegir comida según tus gustos y situación.':'Descubre ideas de comida para '+cleanPath+'. Consejos prácticos para elegir qué comer o cenar según tu tiempo, situación y preferencias.';
-  const url=pageUrl(file);
-  text=text.replace(new RegExp('<title[^>]*>[\\s\\S]*?<\\/title>','gi'),'');
-  text=text.replace(new RegExp('<meta\\s+name=["\\\']description["\\\'][^>]*>\\s*','gi'),'');
-  text=text.replace(new RegExp('<link\\s+rel=["\\\']canonical["\\\'][^>]*>\\s*','gi'),'');
-  const schema={'@context':'https://schema.org','@graph':[{'@type':'WebSite',name:'Ruleta de Comida',url:SITE},{'@type':'WebPage',name:title,description:description,url:url}]};
-  const head='<title>'+esc(title)+'</title>\n<meta name="description" content="'+esc(description)+'">\n<link rel="canonical" href="'+esc(url)+'">\n<meta name="robots" content="index,follow,max-image-preview:large">\n<meta property="og:title" content="'+esc(title)+'">\n<meta property="og:description" content="'+esc(description)+'">\n<meta property="og:url" content="'+esc(url)+'">\n<meta property="og:type" content="website">\n<script type="application/ld+json">'+JSON.stringify(schema)+'</script>\n';
-  return text.replace('</head>',head+'</head>');
-}
-
-function enhance(file){
-  let text=fs.readFileSync(file,'utf8');
-  text=cleanAds(text);
-  text=cleanFooter(text);
-  if(text.indexOf('</head>')!==-1 && text.indexOf('ruleta-visual-refresh')===-1)text=text.replace('</head>','<style id="ruleta-visual-refresh">'+DESIGN+'</style>\n</head>');
-  text=injectSeo(file,text);
-  fs.writeFileSync(file,text);
-}
+function injectSeo(file,text){if(text.indexOf('</head>')===-1)return text;const rel=path.relative(OUT,file).replace(/\\/g,'/');const cleanPath=rel.replace(new RegExp('/index\\.html$','i'),'').replace(new RegExp('\\.html$','i'),'').replace(/[-_]+/g,' ').replace(/\//g,' ').trim();const isHome=rel.toLowerCase()==='index.html';let title=isHome?'Ruleta de Comida | ¿Qué comer hoy? Ideas para cenar':(cleanPath?cleanPath.replace(/\b\w/g,function(c){return c.toUpperCase();})+' | Ruleta de Comida':'Ruleta de Comida | ¿Qué comer hoy?');if(title.length>60)title=title.slice(0,57).replace(/\s+$/,'')+'...';const description=isHome?'¿Qué comer hoy? Gira la ruleta de comida y descubre una idea rápida. Gratis, sin registro y con guías para elegir comida según tus gustos y situación.':'Descubre ideas de comida para '+cleanPath+'. Consejos prácticos para elegir qué comer o cenar según tu tiempo, situación y preferencias.';const url=pageUrl(file);text=text.replace(new RegExp('<title[^>]*>[\\s\\S]*?<\\/title>','gi'),'');text=text.replace(new RegExp('<meta\\s+name=["\\\']description["\\\'][^>]*>\\s*','gi'),'');text=text.replace(new RegExp('<link\\s+rel=["\\\']canonical["\\\'][^>]*>\\s*','gi'),'');const schema={'@context':'https://schema.org','@graph':[{'@type':'WebSite',name:'Ruleta de Comida',url:SITE},{'@type':'WebPage',name:title,description:description,url:url}]};const head='<title>'+esc(title)+'</title>\n<meta name="description" content="'+esc(description)+'">\n<link rel="canonical" href="'+esc(url)+'">\n<meta name="robots" content="index,follow,max-image-preview:large">\n<meta property="og:title" content="'+esc(title)+'">\n<meta property="og:description" content="'+esc(description)+'">\n<meta property="og:url" content="'+esc(url)+'">\n<meta property="og:type" content="website">\n<script type="application/ld+json">'+JSON.stringify(schema)+'</script>\n';return text.replace('</head>',head+'</head>');}
+function enhance(file){let text=fs.readFileSync(file,'utf8');text=cleanAds(text);text=cleanFooter(text);if(text.indexOf('</head>')!==-1&&text.indexOf('ruleta-visual-refresh')===-1)text=text.replace('</head>','<style id="ruleta-visual-refresh">'+DESIGN+'</style>\n</head>');text=injectSeo(file,text);fs.writeFileSync(file,text);}
 function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(entry.isDirectory())walk(full);else if(entry.name.toLowerCase().endsWith('.html'))enhance(full);}}
 walk(OUT);
-
-const pages=[];
-function collect(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(entry.isDirectory())collect(full);else if(entry.name.toLowerCase().endsWith('.html'))pages.push(pageUrl(full));}}
-collect(OUT);
-pages.sort();
-const sitemap='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+pages.map(function(u){return '<url><loc>'+esc(u)+'</loc></url>';}).join('')+'</urlset>';
-fs.writeFileSync(path.join(OUT,'sitemap.xml'),sitemap);
-fs.writeFileSync(path.join(OUT,'robots.txt'),'User-agent: *\nAllow: /\nSitemap: '+SITE+'/sitemap.xml\n');
-console.log('SEO build complete: '+pages.length+' HTML pages enhanced; sitemap and robots generated.');
+const pages=[];function collect(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(entry.isDirectory())collect(full);else if(entry.name.toLowerCase().endsWith('.html'))pages.push(pageUrl(full));}}collect(OUT);pages.sort();const sitemap='<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+pages.map(function(u){return '<url><loc>'+esc(u)+'</loc></url>';}).join('')+'</urlset>';fs.writeFileSync(path.join(OUT,'sitemap.xml'),sitemap);fs.writeFileSync(path.join(OUT,'robots.txt'),'User-agent: *\nAllow: /\nSitemap: '+SITE+'/sitemap.xml\n');console.log('SEO build complete: '+pages.length+' HTML pages enhanced; sitemap and robots generated.');
