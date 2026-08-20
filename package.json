@@ -1,1 +1,1 @@
-{"name":"ruletadecomida","private":true,"scripts":{"build":"node build.js && node seo-pages.js && node growth-pages.js && node seo-max.js"},"dependencies":{"adm-zip":"^0.5.16"}}
+{"name":"ruletadecomida","private":true,"scripts":{"build":"node build.js && node seo-pages.js && node growth-pages.js && node seo-max.js && node footer-fix.js"},"dependencies":{"adm-zip":"^0.5.16"}}
