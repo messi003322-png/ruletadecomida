@@ -49,19 +49,25 @@ function pageUrl(file){
 function seoFor(file,text){
   const rel=path.relative(OUT,file).replace(/\\/g,'/');
   const cleanPath=rel.replace(/\/index\.html$/i,'').replace(/\.html$/i,'').replace(/[-_]+/g,' ').replace(/\//g,' ').trim();
-  const existingTitle=(text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1];
-  let title=existingTitle ? existingTitle.replace(/\s+/g,' ').trim() : '';
-  if(!title || title.length<12) title=cleanPath ? `${cleanPath.replace(/\b\w/g,c=>c.toUpperCase())} | Ruleta de Comida` : 'Ruleta de Comida | ¿Qué comer hoy?';
+  let title=(text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||'';
+  title=title.replace(/\s+/g,' ').trim();
+  const isHome=rel.toLowerCase()==='index.html';
+  if(isHome) title='Ruleta de Comida | ¿Qué comer hoy? Ideas para cenar';
+  else if(!title || title.length<12) title=cleanPath ? `${cleanPath.replace(/\b\w/g,c=>c.toUpperCase())} | Ruleta de Comida` : 'Ruleta de Comida | ¿Qué comer hoy?';
   if(title.length>60) title=title.slice(0,57).replace(/\s+$/,'')+'...';
-  const pathTopic=cleanPath || 'qué comer hoy';
-  const description=`Descubre qué comer hoy con Ruleta de Comida. Ideas de comida, restaurantes y opciones para elegir rápido y sin complicarte${cleanPath?' en '+pathTopic:''}.`;
+  const description=isHome
+    ? '¿Qué comer hoy? Gira la ruleta de comida y descubre una idea rápida. Gratis, sin registro y con guías para elegir comida según tus gustos y situación.'
+    : `Descubre ideas de comida para ${cleanPath}. Consejos prácticos para elegir qué comer o cenar según tu tiempo, situación y preferencias.`;
   return {title,description,url:pageUrl(file)};
 }
 function injectSeo(file,text){
   if(!/<\/head>/i.test(text)) return text;
   const seo=seoFor(file,text);
   text=text.replace(/<title[^>]*>[\s\S]*?<\/title>/i,'');
-  const head=`<title>${esc(seo.title)}</title>\n<meta name="description" content="${esc(seo.description)}">\n<link rel="canonical" href="${esc(seo.url)}">\n<meta name="robots" content="index,follow,max-image-preview:large">\n<meta property="og:title" content="${esc(seo.title)}">\n<meta property="og:description" content="${esc(seo.description)}">\n<meta property="og:url" content="${esc(seo.url)}">\n<meta property="og:type" content="website">\n<script type="application/ld+json">${JSON.stringify({"@context":"https://schema.org","@type":"WebSite","name":"Ruleta de Comida","url":SITE,"potentialAction":{"@type":"SearchAction","target":SITE+"/?q={search_term_string}","query-input":"required name=search_term_string"}})}</script>\n`;
+  text=text.replace(/<meta\s+name=["']description["'][^>]*>\s*/gi,'');
+  text=text.replace(/<link\s+rel=["']canonical["'][^>]*>\s*/gi,'');
+  const schema={"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Ruleta de Comida","url":SITE},{"@type":"Organization","name":"Ruleta de Comida","url":SITE},{"@type":"WebPage","name":seo.title,"description":seo.description,"url":seo.url}]};
+  const head=`<title>${esc(seo.title)}</title>\n<meta name="description" content="${esc(seo.description)}">\n<link rel="canonical" href="${esc(seo.url)}">\n<meta name="robots" content="index,follow,max-image-preview:large">\n<meta property="og:title" content="${esc(seo.title)}">\n<meta property="og:description" content="${esc(seo.description)}">\n<meta property="og:url" content="${esc(seo.url)}">\n<meta property="og:type" content="website">\n<script type="application/ld+json">${JSON.stringify(schema)}</script>\n`;
   return text.replace(/<\/head>/i,head+'</head>');
 }
 function enhance(file){
