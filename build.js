@@ -10,8 +10,7 @@ fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 new AdmZip(ZIP).extractAllTo(OUT, true);
 
-const DESIGN = `
-:root{--rf-brand:#e85d04;--rf-ink:#1c1917;--rf-border:#e7e5e4;--rf-shadow:0 14px 40px rgba(28,25,23,.08)}
+const DESIGN = `:root{--rf-brand:#e85d04;--rf-ink:#1c1917;--rf-border:#e7e5e4;--rf-shadow:0 14px 40px rgba(28,25,23,.08)}
 html{scroll-behavior:smooth}body{background:linear-gradient(180deg,#fff 0%,#fafaf9 45%,#fff 100%);color:var(--rf-ink)}
 header{box-shadow:0 1px 0 rgba(28,25,23,.05),0 8px 24px rgba(28,25,23,.04)}
 header nav a{min-height:40px;display:inline-flex;align-items:center;justify-content:center;font-weight:600;transition:transform .2s ease,box-shadow .2s ease}
@@ -50,7 +49,7 @@ function cleanFooter(text){return text.replace(new RegExp('<footer\\b[\\s\\S]*?<
 function injectSeo(file,text){
   if(text.indexOf('</head>')===-1)return text;
   const rel=path.relative(OUT,file).replace(/\\/g,'/');
-  const cleanPath=rel.replace(new RegExp('/index\\.html$','i'),'').replace(new RegExp('\\.html$','i'),'').replace(/[-_]+/g,' ').replace(/\\//g,' ').trim();
+  const cleanPath=rel.replace(new RegExp('/index\\.html$','i'),'').replace(new RegExp('\\.html$','i'),'').replace(/[-_]+/g,' ').replace(/\//g,' ').trim();
   const isHome=rel.toLowerCase()==='index.html';
   let title=isHome?'Ruleta de Comida | ¿Qué comer hoy? Ideas para cenar':(cleanPath?cleanPath.replace(/\b\w/g,function(c){return c.toUpperCase();})+' | Ruleta de Comida':'Ruleta de Comida | ¿Qué comer hoy?');
   if(title.length>60)title=title.slice(0,57).replace(/\s+$/,'')+'...';
