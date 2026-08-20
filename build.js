@@ -37,76 +37,21 @@ function cleanAds(text) {
   text = text.replace(/\s+data-mnd[a-z0-9-]+=["'][^"']*["']/gi, '');
   return text;
 }
+
+const footerLinks = [
+  ['Qué cenar hoy','/que-cenar-hoy/'],['Cena rápida','/cena-rapida/'],['Comida barata','/comida-barata/'],['No sé qué cenar','/no-se-que-cenar/'],['Cena para una persona','/cena-para-una-persona/'],
+  ['Pizza','/pizza/'],['Sushi','/sushi/'],['Paella','/paella/'],['Tapas','/tapas/'],['Madrid','/madrid/'],['Barcelona','/barcelona/'],['Valencia','/valencia/'],
+  ['Pizza en Madrid','/pizza-madrid/'],['Paella en Valencia','/paella-valencia/'],['Tapas en Sevilla','/tapas-sevilla/'],['Sushi en Barcelona','/sushi-barcelona/'],['Comida china en Málaga','/comida-china-malaga/'],['Hamburguesa en Madrid','/hamburguesa-madrid/'],['Kebab en Barcelona','/kebab-barcelona/'],['Ramen en Valencia','/ramen-valencia/'],['Tortilla en Bilbao','/tortilla-bilbao/'],['Croquetas en Madrid','/croquetas-madrid/'],['Pasta en Barcelona','/pasta-barcelona/'],['Ensaladas en Madrid','/ensaladas-madrid/'],['Waffles en Algeciras','/waffles-algeciras/'],['Crepes en Alicante','/crepes-alicante/'],['Comida india en Mataró','/comida-india-mataro/'],['Pizza en Cornellà','/pizza-cornella/'],['Tortilla de patata en San Sebastián de los Reyes','/tortilla-de-patata-san-sebastian-de-los-reyes/'],['Croquetas en Badajoz','/croquetas-badajoz/'],['Comida india en Cádiz','/comida-india-cadiz/'],['Tapas en Parla','/tapas-parla/'],['Waffles en Coslada','/waffles-coslada/'],['Croquetas en Vigo','/croquetas-vigo/'],['Bocadillos en Elche','/bocadillos-elche/'],['Ramen en Melilla','/ramen-melilla/'],['Comida china en San Sebastián de los Reyes','/comida-china-san-sebastian-de-los-reyes/'],['Croquetas en Las Palmas','/croquetas-las-palmas/'],['Bocadillos en Ourense','/bocadillos-ourense/'],['Tapas en Badajoz','/tapas-badajoz/'],['Kebab en Vigo','/kebab-vigo/'],['Crepes en San Sebastián de los Reyes','/crepes-san-sebastian-de-los-reyes/'],['Pasta en Lasarte','/pasta-lasarte/'],['Helados en Barakaldo','/helados-barakaldo/'],['Kebab en Mataró','/kebab-mataro/'],['Croquetas en Torrent','/croquetas-torrent/'],['Burritos en Palma','/burritos-palma/'],['Helados en El Puerto de Santa María','/helados-el-puerto-de-santa-maria/']
+];
+function footerHtml(){return `<footer class="rf-final-footer"><div class="rf-footer-inner"><div class="rf-footer-brand"><strong>Ruleta de Comida</strong><span>Ruleta de Comida</span><p>Decide qué comer o cenar en segundos. 20 comidas · 79 ciudades.</p></div><nav class="rf-footer-links" aria-label="Guías de comida"><div class="rf-footer-grid">${footerLinks.map(([label,url])=>`<a href="${SITE}${url}">${label}</a>`).join('')}</div></nav><p class="rf-footer-copy">© 2026 Ruleta de Comida</p></div></footer>`}
 function cleanFooter(text) {
-  const food = '(?:Pizza|Hamburguesa|Sushi|Kebab|Tacos|Burritos|Pollo asado|Comida china|Ramen|Pasta|Ensaladas|Paella|Tapas|Bocadillos|Crepes|Waffles|Helados|Comida india|Croquetas|Tortilla(?: de patata)?)';
-  const link = new RegExp(`<a\\b[^>]*>\\s*${food}\\s+en\\s+[^<]+<\\/a>`, 'gi');
-  const item = new RegExp(`<li\\b[^>]*>\\s*${link.source}\\s*<\\/li>`, 'gi');
-  return text.replace(/<footer\b[\s\S]*?<\/footer>/gi, footer => {
-    footer = footer.replace(item, '');
-    footer = footer.replace(link, '');
-    return footer;
-  });
+  return text.replace(/<footer\b[\s\S]*?<\/footer>/gi, footerHtml());
 }
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function pageUrl(file){
-  const rel=path.relative(OUT,file).replace(/\\/g,'/');
-  let u='/' + rel;
-  if(u.endsWith('/index.html')) u=u.slice(0,-10);
-  else if(u.endsWith('.html')) u=u.slice(0,-5);
-  if(u==='/index') u='/';
-  return SITE + (u==='/'?'':u);
-}
-function seoFor(file,text){
-  const rel=path.relative(OUT,file).replace(/\\/g,'/');
-  const cleanPath=rel.replace(/\/index\.html$/i,'').replace(/\.html$/i,'').replace(/[-_]+/g,' ').replace(/\//g,' ').trim();
-  let title=(text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||'';
-  title=title.replace(/\s+/g,' ').trim();
-  const isHome=rel.toLowerCase()==='index.html';
-  if(isHome) title='Ruleta de Comida | ¿Qué comer hoy? Ideas para cenar';
-  else if(!title || title.length<12) title=cleanPath ? `${cleanPath.replace(/\b\w/g,c=>c.toUpperCase())} | Ruleta de Comida` : 'Ruleta de Comida | ¿Qué comer hoy?';
-  if(title.length>60) title=title.slice(0,57).replace(/\s+$/,'')+'...';
-  const description=isHome
-    ? '¿Qué comer hoy? Gira la ruleta de comida y descubre una idea rápida. Gratis, sin registro y con guías para elegir comida según tus gustos y situación.'
-    : `Descubre ideas de comida para ${cleanPath}. Consejos prácticos para elegir qué comer o cenar según tu tiempo, situación y preferencias.`;
-  return {title,description,url:pageUrl(file)};
-}
-function injectSeo(file,text){
-  if(!/<\/head>/i.test(text)) return text;
-  const seo=seoFor(file,text);
-  text=text.replace(/<title[^>]*>[\s\S]*?<\/title>/i,'');
-  text=text.replace(/<meta\s+name=["']description["'][^>]*>\s*/gi,'');
-  text=text.replace(/<link\s+rel=["']canonical["'][^>]*>\s*/gi,'');
-  const schema={"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Ruleta de Comida","url":SITE},{"@type":"Organization","name":"Ruleta de Comida","url":SITE},{"@type":"WebPage","name":seo.title,"description":seo.description,"url":seo.url}]};
-  const head=`<title>${esc(seo.title)}</title>\n<meta name="description" content="${esc(seo.description)}">\n<link rel="canonical" href="${esc(seo.url)}">\n<meta name="robots" content="index,follow,max-image-preview:large">\n<meta property="og:title" content="${esc(seo.title)}">\n<meta property="og:description" content="${esc(seo.description)}">\n<meta property="og:url" content="${esc(seo.url)}">\n<meta property="og:type" content="website">\n<script type="application/ld+json">${JSON.stringify(schema)}</script>\n`;
-  return text.replace(/<\/head>/i,head+'</head>');
-}
-function enhance(file){
-  let text=cleanAds(fs.readFileSync(file,'utf8'));
-  text=cleanFooter(text);
-  if(/<\/head>/i.test(text) && !text.includes('ruleta-visual-refresh')) text=text.replace(/<\/head>/i,`<style id="ruleta-visual-refresh">${DESIGN}</style>\n</head>`);
-  text=injectSeo(file,text);
-  fs.writeFileSync(file,text);
-}
-function walk(dir){
-  for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
-    const full=path.join(dir,entry.name);
-    if(entry.isDirectory()) walk(full);
-    else if(/\.(html?|css|js|json|xml)$/i.test(entry.name)) enhance(full);
-  }
-}
+function pageUrl(file){const rel=path.relative(OUT,file).replace(/\\/g,'/');let u='/'+rel;if(u.endsWith('/index.html'))u=u.slice(0,-10);else if(u.endsWith('.html'))u=u.slice(0,-5);if(u==='/index')u='/';return SITE+(u==='/'?'':u)}
+function seoFor(file,text){const rel=path.relative(OUT,file).replace(/\\/g,'/');const cleanPath=rel.replace(/\/index\.html$/i,'').replace(/\.html$/i,'').replace(/[-_]+/g,' ').replace(/\//g,' ').trim();let title=(text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||'';title=title.replace(/\s+/g,' ').trim();const isHome=rel.toLowerCase()==='index.html';if(isHome)title='Ruleta de Comida | ¿Qué comer hoy? Ideas para cenar';else if(!title||title.length<12)title=cleanPath?`${cleanPath.replace(/\b\w/g,c=>c.toUpperCase())} | Ruleta de Comida`:'Ruleta de Comida | ¿Qué comer hoy?';if(title.length>60)title=title.slice(0,57).replace(/\s+$/,'')+'...';const description=isHome?'¿Qué comer hoy? Gira la ruleta de comida y descubre una idea rápida. Gratis, sin registro y con guías para elegir comida según tus gustos y situación.':`Descubre ideas de comida para ${cleanPath}. Consejos prácticos para elegir qué comer o cenar según tu tiempo, situación y preferencias.`;return {title,description,url:pageUrl(file)}}
+function injectSeo(file,text){if(!/<\/head>/i.test(text))return text;const seo=seoFor(file,text);text=text.replace(/<title[^>]*>[\s\S]*?<\/title>/i,'');text=text.replace(/<meta\s+name=["']description["'][^>]*>\s*/gi,'');text=text.replace(/<link\s+rel=["']canonical["'][^>]*>\s*/gi,'');const schema={'@context':'https://schema.org','@graph':[{'@type':'WebSite',name:'Ruleta de Comida',url:SITE},{'@type':'Organization',name:'Ruleta de Comida',url:SITE},{'@type':'WebPage',name:seo.title,description:seo.description,url:seo.url}]};const head=`<title>${esc(seo.title)}</title>\n<meta name="description" content="${esc(seo.description)}">\n<link rel="canonical" href="${esc(seo.url)}">\n<meta name="robots" content="index,follow,max-image-preview:large">\n<meta property="og:title" content="${esc(seo.title)}">\n<meta property="og:description" content="${esc(seo.description)}">\n<meta property="og:url" content="${esc(seo.url)}">\n<meta property="og:type" content="website">\n<script type="application/ld+json">${JSON.stringify(schema)}</script>\n`;return text.replace(/<\/head>/i,head+'</head>')}
+function enhance(file){let text=cleanAds(fs.readFileSync(file,'utf8'));text=cleanFooter(text);if(/<\/head>/i.test(text)&&!text.includes('ruleta-visual-refresh'))text=text.replace(/<\/head>/i,`<style id="ruleta-visual-refresh">${DESIGN}</style>\n</head>`);text=injectSeo(file,text);fs.writeFileSync(file,text)}
+function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(entry.isDirectory())walk(full);else if(/\.(html?|css|js|json|xml)$/i.test(entry.name))enhance(full)}}
 walk(OUT);
-
-const pages=[];
-function collect(dir){
-  for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
-    const full=path.join(dir,entry.name);
-    if(entry.isDirectory()) collect(full);
-    else if(/\.html$/i.test(entry.name)) pages.push(pageUrl(full));
-  }
-}
-collect(OUT);
-pages.sort();
-const sitemap=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',...pages.map(u=>`<url><loc>${esc(u)}</loc></url>`),'</urlset>'].join('');
-fs.writeFileSync(path.join(OUT,'sitemap.xml'),sitemap);
-fs.writeFileSync(path.join(OUT,'robots.txt'),`User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
-console.log(`SEO build complete: ${pages.length} HTML pages enhanced; sitemap and robots generated.`);
+const pages=[];function collect(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(entry.isDirectory())collect(full);else if(/\.html$/i.test(entry.name))pages.push(pageUrl(full))}}collect(OUT);pages.sort();const sitemap=['<?xml version="1.0" encoding="UTF-8"?>','<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',...pages.map(u=>`<url><loc>${esc(u)}</loc></url>`),'</urlset>'].join('');fs.writeFileSync(path.join(OUT,'sitemap.xml'),sitemap);fs.writeFileSync(path.join(OUT,'robots.txt'),`User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);console.log(`SEO build complete: ${pages.length} HTML pages enhanced; sitemap and robots generated.`);
