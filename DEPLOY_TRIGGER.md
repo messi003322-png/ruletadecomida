@@ -1,3 +1,5 @@
 # Production deployment trigger
 
-This file intentionally triggers a fresh production build after the SEO/footer update.
+Build trigger after 404 route repair, footer logo update, and SEO route generation.
+
+Updated: 2026-08-20T22:59:30Z
