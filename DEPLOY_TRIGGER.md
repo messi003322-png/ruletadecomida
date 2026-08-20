@@ -1,5 +1,5 @@
 # Production deployment trigger
 
-Build trigger after 404 route repair, footer logo update, and SEO route generation.
+Build trigger after spacing repair: SEO card titles and descriptions now have clear separation.
 
-Updated: 2026-08-20T22:59:30Z
+Updated: 2026-08-20T23:42:30Z
