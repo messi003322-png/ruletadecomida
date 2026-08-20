@@ -4,16 +4,17 @@ const OUT=path.join(process.cwd(),'dist');
 
 function fix(file){
   let html=fs.readFileSync(file,'utf8');
-  html=html.replace(/<footer([\\s\\S]*?)<\\/footer>/gi,(full,body)=>{
+  const footerRe=new RegExp('<footer([\\s\\S]*?)<\\/footer>','gi');
+  html=html.replace(footerRe,(full,body)=>{
     let imgs=0;
-    body=body.replace(/<img\\b[^>]*>/gi,(img)=>{
+    body=body.replace(/<img\b[^>]*>/gi,(img)=>{
       imgs++;
       return imgs===1?img:'';
     });
     return '<footer'+body+'</footer>';
   });
-  html=html.replace(/<style data-responsive-footer-fix>[^<]*<\\/style>/gi,'');
-  html=html.replace(/<\\/head>/i,`<style data-responsive-footer-fix>
+  html=html.replace(/<style data-responsive-footer-fix>[\s\S]*?<\/style>/gi,'');
+  html=html.replace(/<\/head>/i,`<style data-responsive-footer-fix>
 footer img{max-width:72px;height:auto;display:block;object-fit:contain}
 footer > *{box-sizing:border-box}
 @media(max-width:767px){footer{width:100%;overflow:hidden}footer img{max-width:56px}footer .footer-brand,footer [class*=brand]{display:flex;align-items:center;gap:10px}}
