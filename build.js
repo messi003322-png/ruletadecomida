@@ -37,21 +37,19 @@ function cleanAds(text) {
   text = text.replace(/\s+data-mnd[a-z0-9-]+=["'][^"']*["']/gi, '');
   return text;
 }
-
 function cleanFooter(text) {
   const food = '(?:Pizza|Hamburguesa|Sushi|Kebab|Tacos|Burritos|Pollo asado|Comida china|Ramen|Pasta|Ensaladas|Paella|Tapas|Bocadillos|Crepes|Waffles|Helados|Comida india|Croquetas|Tortilla(?: de patata)?)';
   const link = new RegExp(`<a\\b[^>]*>\\s*${food}\\s+en\\s+[^<]+<\\/a>`, 'gi');
   const item = new RegExp(`<li\\b[^>]*>\\s*${link.source}\\s*<\\/li>`, 'gi');
-  return text.replace(/<footer\\b[\\s\\S]*?<\\/footer>/gi, footer => {
+  return text.replace(/<footer\b[\s\S]*?<\/footer>/gi, footer => {
     footer = footer.replace(item, '');
     footer = footer.replace(link, '');
     return footer;
   });
 }
-
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function pageUrl(file){
-  const rel=path.relative(OUT,file).replace(/\\\\/g,'/');
+  const rel=path.relative(OUT,file).replace(/\\/g,'/');
   let u='/' + rel;
   if(u.endsWith('/index.html')) u=u.slice(0,-10);
   else if(u.endsWith('.html')) u=u.slice(0,-5);
@@ -59,33 +57,33 @@ function pageUrl(file){
   return SITE + (u==='/'?'':u);
 }
 function seoFor(file,text){
-  const rel=path.relative(OUT,file).replace(/\\\\/g,'/');
-  const cleanPath=rel.replace(/\\/index\\.html$/i,'').replace(/\\.html$/i,'').replace(/[-_]+/g,' ').replace(/\\//g,' ').trim();
-  let title=(text.match(/<title[^>]*>([\\s\\S]*?)<\\/title>/i)||[])[1]||'';
-  title=title.replace(/\\s+/g,' ').trim();
+  const rel=path.relative(OUT,file).replace(/\\/g,'/');
+  const cleanPath=rel.replace(/\/index\.html$/i,'').replace(/\.html$/i,'').replace(/[-_]+/g,' ').replace(/\//g,' ').trim();
+  let title=(text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]||'';
+  title=title.replace(/\s+/g,' ').trim();
   const isHome=rel.toLowerCase()==='index.html';
   if(isHome) title='Ruleta de Comida | ¿Qué comer hoy? Ideas para cenar';
-  else if(!title || title.length<12) title=cleanPath ? `${cleanPath.replace(/\\b\\w/g,c=>c.toUpperCase())} | Ruleta de Comida` : 'Ruleta de Comida | ¿Qué comer hoy?';
-  if(title.length>60) title=title.slice(0,57).replace(/\\s+$/,'')+'...';
+  else if(!title || title.length<12) title=cleanPath ? `${cleanPath.replace(/\b\w/g,c=>c.toUpperCase())} | Ruleta de Comida` : 'Ruleta de Comida | ¿Qué comer hoy?';
+  if(title.length>60) title=title.slice(0,57).replace(/\s+$/,'')+'...';
   const description=isHome
     ? '¿Qué comer hoy? Gira la ruleta de comida y descubre una idea rápida. Gratis, sin registro y con guías para elegir comida según tus gustos y situación.'
     : `Descubre ideas de comida para ${cleanPath}. Consejos prácticos para elegir qué comer o cenar según tu tiempo, situación y preferencias.`;
   return {title,description,url:pageUrl(file)};
 }
 function injectSeo(file,text){
-  if(!/<\\/head>/i.test(text)) return text;
+  if(!/<\/head>/i.test(text)) return text;
   const seo=seoFor(file,text);
-  text=text.replace(/<title[^>]*>[\\s\\S]*?<\\/title>/i,'');
-  text=text.replace(/<meta\\s+name=["']description["'][^>]*>\\s*/gi,'');
-  text=text.replace(/<link\\s+rel=["']canonical["'][^>]*>\\s*/gi,'');
+  text=text.replace(/<title[^>]*>[\s\S]*?<\/title>/i,'');
+  text=text.replace(/<meta\s+name=["']description["'][^>]*>\s*/gi,'');
+  text=text.replace(/<link\s+rel=["']canonical["'][^>]*>\s*/gi,'');
   const schema={"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"Ruleta de Comida","url":SITE},{"@type":"Organization","name":"Ruleta de Comida","url":SITE},{"@type":"WebPage","name":seo.title,"description":seo.description,"url":seo.url}]};
   const head=`<title>${esc(seo.title)}</title>\n<meta name="description" content="${esc(seo.description)}">\n<link rel="canonical" href="${esc(seo.url)}">\n<meta name="robots" content="index,follow,max-image-preview:large">\n<meta property="og:title" content="${esc(seo.title)}">\n<meta property="og:description" content="${esc(seo.description)}">\n<meta property="og:url" content="${esc(seo.url)}">\n<meta property="og:type" content="website">\n<script type="application/ld+json">${JSON.stringify(schema)}</script>\n`;
-  return text.replace(/<\\/head>/i,head+'</head>');
+  return text.replace(/<\/head>/i,head+'</head>');
 }
 function enhance(file){
   let text=cleanAds(fs.readFileSync(file,'utf8'));
   text=cleanFooter(text);
-  if(/<\\/head>/i.test(text) && !text.includes('ruleta-visual-refresh')) text=text.replace(/<\\/head>/i,`<style id="ruleta-visual-refresh">${DESIGN}</style>\n</head>`);
+  if(/<\/head>/i.test(text) && !text.includes('ruleta-visual-refresh')) text=text.replace(/<\/head>/i,`<style id="ruleta-visual-refresh">${DESIGN}</style>\n</head>`);
   text=injectSeo(file,text);
   fs.writeFileSync(file,text);
 }
@@ -93,7 +91,7 @@ function walk(dir){
   for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
     const full=path.join(dir,entry.name);
     if(entry.isDirectory()) walk(full);
-    else if(/\\.(html?|css|js|json|xml)$/i.test(entry.name)) enhance(full);
+    else if(/\.(html?|css|js|json|xml)$/i.test(entry.name)) enhance(full);
   }
 }
 walk(OUT);
@@ -103,7 +101,7 @@ function collect(dir){
   for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
     const full=path.join(dir,entry.name);
     if(entry.isDirectory()) collect(full);
-    else if(/\\.html$/i.test(entry.name)) pages.push(pageUrl(full));
+    else if(/\.html$/i.test(entry.name)) pages.push(pageUrl(full));
   }
 }
 collect(OUT);
