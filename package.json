@@ -1,0 +1,1 @@
+{"name":"ruletadecomida","private":true,"scripts":{"build":"node build.js"},"dependencies":{"adm-zip":"^0.5.16"}}
