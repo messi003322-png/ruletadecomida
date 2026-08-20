@@ -22,14 +22,25 @@ const pages = [
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function page(item){
   const [slug,title,desc,body]=item;
-  const related=pages.filter(p=>p[0]!==slug).slice(0,5);
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} | Ruleta de Comida</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${SITE}/${slug}/"><meta name="robots" content="index,follow"><meta property="og:title" content="${esc(title)} | Ruleta de Comida"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${SITE}/${slug}/"><meta property="og:type" content="website"><script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@type':'WebPage','name':title,'description':desc,'url':`${SITE}/${slug}/`,'isPartOf':{'@type':'WebSite','name':'Ruleta de Comida','url':SITE}})}</script><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0;color:#1c1917;background:#fafaf9}main{max-width:900px;margin:auto;padding:32px 20px 60px}a{color:#e85d04;text-decoration:none}nav{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:36px}article{background:white;border:1px solid #e7e5e4;border-radius:24px;padding:32px;box-shadow:0 12px 35px rgba(28,25,23,.07)}h1{font-size:clamp(2rem,6vw,3.4rem);line-height:1.05;margin:.2em 0}h2{margin-top:32px}p{font-size:1.08rem;line-height:1.7}.cta{display:inline-block;background:#e85d04;color:white;padding:14px 20px;border-radius:12px;font-weight:700;margin-top:10px}.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.links a{padding:14px;background:#fff7ed;border-radius:12px}</style></head><body><main><nav><a href="${SITE}/">Ruleta de Comida</a><a href="${SITE}/que-comer-hoy/">Qué comer hoy</a><a href="${SITE}/ideas-de-comida/">Ideas de comida</a></nav><article><p>Ruleta de Comida</p><h1>${esc(title)}</h1><p>${esc(desc)}</p><p>${esc(body)}</p><a class="cta" href="${SITE}/">🎲 Probar la ruleta</a><h2>También te puede interesar</h2><div class="links">${related.map(p=>`<a href="${SITE}/${p[0]}/">${esc(p[1])}</a>`).join('')}</div></article></main></body></html>`;
+  const related=pages.filter(p=>p[0]!==slug).slice(0,6);
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} | Ruleta de Comida</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${SITE}/${slug}/"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:title" content="${esc(title)} | Ruleta de Comida"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${SITE}/${slug}/"><meta property="og:type" content="website"><script type="application/ld+json">${JSON.stringify({'@context':'https://schema.org','@type':'WebPage','name':title,'description':desc,'url':`${SITE}/${slug}/`,'isPartOf':{'@type':'WebSite','name':'Ruleta de Comida','url':SITE}})}</script><style>body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0;color:#1c1917;background:#fafaf9}main{max-width:900px;margin:auto;padding:32px 20px 60px}a{color:#e85d04;text-decoration:none}nav{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:36px}article{background:white;border:1px solid #e7e5e4;border-radius:24px;padding:32px;box-shadow:0 12px 35px rgba(28,25,23,.07)}h1{font-size:clamp(2rem,6vw,3.4rem);line-height:1.05;margin:.2em 0}h2{margin-top:32px}p{font-size:1.08rem;line-height:1.7}.cta{display:inline-block;background:#e85d04;color:white;padding:14px 20px;border-radius:12px;font-weight:700;margin-top:10px}.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.links a{padding:14px;background:#fff7ed;border-radius:12px}</style></head><body><main><nav><a href="${SITE}/">Ruleta de Comida</a><a href="${SITE}/que-comer-hoy/">Qué comer hoy</a><a href="${SITE}/ideas-de-comida/">Ideas de comida</a></nav><article><p>Ruleta de Comida</p><h1>${esc(title)}</h1><p>${esc(desc)}</p><p>${esc(body)}</p><a class="cta" href="${SITE}/">🎲 Probar la ruleta</a><h2>También te puede interesar</h2><div class="links">${related.map(p=>`<a href="${SITE}/${p[0]}/">${esc(p[1])}</a>`).join('')}</div></article></main></body></html>`;
 }
 
 for(const item of pages){
   const dir=path.join(OUT,item[0]);
   fs.mkdirSync(dir,{recursive:true});
   fs.writeFileSync(path.join(dir,'index.html'),page(item),'utf8');
+}
+
+const home=path.join(OUT,'index.html');
+if(fs.existsSync(home)){
+  let html=fs.readFileSync(home,'utf8');
+  if(!html.includes('seo-hub')){
+    const cards=pages.map(p=>`<a class="seo-card" href="${SITE}/${p[0]}/"><strong>${esc(p[1])}</strong><span>${esc(p[2])}</span></a>`).join('');
+    const hub=`<section class="seo-hub" aria-labelledby="seo-hub-title"><h2 id="seo-hub-title">Más ideas para decidir qué comer</h2><p class="seo-hub-intro">Explora guías de comida y utiliza la ruleta cuando no sepas qué elegir. Encuentra ideas para hoy, esta noche, en pareja, en familia y según el tipo de comida que te apetezca.</p><div class="seo-hub-grid">${cards}</div></section>`;
+    html=html.replace(/<\/main>/i,hub+'</main>');
+    fs.writeFileSync(home,html,'utf8');
+  }
 }
 
 const urls=[];
