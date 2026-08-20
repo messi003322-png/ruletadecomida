@@ -1,0 +1,24 @@
+{
+  "strategy": "high-intent food discovery pages",
+  "note": "Generated as a planning manifest; only publish pages with genuinely useful, unique content.",
+  "clusters": [
+    "que-comer-hoy",
+    "que-comer-esta-noche",
+    "ideas-de-comida",
+    "comida-rapida",
+    "comida-saludable",
+    "comida-italiana",
+    "comida-mexicana",
+    "comida-espanola",
+    "comida-asiatica",
+    "comida-vegetariana",
+    "comida-para-dos",
+    "comida-para-familias"
+  ],
+  "rules": [
+    "Do not create thin or near-duplicate pages.",
+    "Each landing page must answer a distinct search intent.",
+    "Link landing pages naturally to the roulette and relevant directory pages.",
+    "Add original, useful content before indexing a new landing page."
+  ]
+}
