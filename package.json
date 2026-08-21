@@ -3,7 +3,7 @@
   "private": true,
   "description": "Ruleta de Comida — build de producción con mejoras UX, diseño y SEO",
   "scripts": {
-    "build": "node prebuild.js && node build.js && node seo-pages.js && node growth-pages.js && node seo-max.js && node footer-pages.js && node footer-fix.js && node visual-refresh.js && node responsive-footer-fix.js && node wow-design.js && node spacing-fix.js && node footer-clean.js && node seo-free-growth.js && node seo-link-fix.js && node seo-all-fixes.js && node seo-traffic-max.js && node seo-final-polish.js && node sitewide-design-cleanup.js && node professional-final-polish.js && node sitewide-pro-upgrade.js"
+    "build": "node prebuild.js && node build.js && node seo-pages.js && node growth-pages.js && node seo-max.js && node footer-pages.js && node footer-fix.js && node visual-refresh.js && node responsive-footer-fix.js && node wow-design.js && node spacing-fix.js && node footer-clean.js && node seo-free-growth.js && node seo-link-fix.js && node seo-all-fixes.js && node seo-traffic-max.js && node seo-final-polish.js && node sitewide-design-cleanup.js && node professional-final-polish.js && node sitewide-pro-upgrade.js && node share-float.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.16"
