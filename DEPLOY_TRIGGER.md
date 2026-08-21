@@ -1,2 +1,2 @@
 Deployment trigger for Ruleta de Comida.
-Complete SEO link package: concise internal anchors, duplicate anchor cleanup, authoritative external resource, and linkable resources.
+SEO growth package: internal link improvements, external authority link, breadcrumbs, favicon metadata, popular food hubs, and focused Pizza/Sushi content.
