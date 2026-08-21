@@ -1,0 +1,14 @@
+const fs=require('fs');
+const path=require('path');
+const OUT=path.join(process.cwd(),'dist');
+const SITE='https://www.ruletadecomida.es';
+const EXTERNAL='https://www.aesan.gob.es/nutricion';
+if(!fs.existsSync(OUT)) throw new Error('dist not found');
+function walk(dir,cb){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const f=path.join(dir,e.name);if(e.isDirectory())walk(f,cb);else if(/\.html$/i.test(e.name))cb(f);}}
+function textOf(s){return s.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();}
+function label(href,text){const slug=href.replace(/^https?:\/\/[^/]+/,'').replace(/\/$/,'').split('/').pop()||'';const map={'que-comer-hoy':'Qué comer hoy','ideas-de-comida':'Ideas de comida','que-comer-esta-noche':'Qué comer esta noche','que-cenar-hoy':'Qué cenar hoy','cena-rapida':'Cena rápida','comida-barata':'Comida barata','comida-rapida':'Comida rápida','comida-saludable':'Comida saludable','cena-para-una-persona':'Cena para una persona'};if(map[slug])return map[slug];return slug.replace(/[-_]+/g,' ').split(/\s+/).filter(Boolean).slice(0,4).join(' ')||text.slice(0,40);}
+function fixCards(html){return html.replace(/<a\s+class=["']seo-card["']\s+href=["']([^"']+)["']\s*>\s*<strong>([\s\S]*?)<\/strong>\s*<span>([\s\S]*?)<\/span>\s*<\/a>/gi,(m,href,title,desc)=>`<div class="seo-card"><strong>${title}</strong><span>${desc}</span><a class="seo-card-link" href="${href}">Ver guía: ${label(href,textOf(title))}</a></div>`);}
+function fixLong(html){return html.replace(/<a\b([^>]*href=["'][^"']+["'][^>]*)>([\s\S]*?)<\/a>/gi,(m,a,i)=>{const h=(a.match(/href=["']([^"']+)["']/i)||[])[1]||'';const t=textOf(i);if(!h||!(/^\//.test(h)||h.startsWith(SITE))||t.length<=48||/seo-card-link/i.test(a))return m;return `<a${a}>${label(h,t)}</a>`;});}
+function dedupe(html){const seen={};return html.replace(/<a\b([^>]*href=["'][^"']+["'][^>]*)>([\s\S]*?)<\/a>/gi,(m,a,i)=>{const t=textOf(i);if(!t)return m;const k=t.toLowerCase();seen[k]=(seen[k]||0)+1;if(seen[k]===1)return m;return `<a${a}>${i} · guía ${seen[k]}</a>`;});}
+function ext(html){if(/aesan\.gob\.es\/nutricion/i.test(html))return html;return html.replace(/<\/body>/i,`<section class="seo-external-resource" aria-label="Recurso externo"><p><a href="${EXTERNAL}" target="_blank" rel="noopener noreferrer">Información oficial sobre nutrición y alimentación — AESAN</a></p></section></body>`);}
+let n=0;walk(OUT,file=>{let h=fs.readFileSync(file,'utf8');h=fixCards(h);h=fixLong(h);h=dedupe(h);h=ext(h);h=h.replace(/<style id="seo-all-fixes">[\s\S]*?<\/style>/gi,'');h=h.replace(/<\/head>/i,'<style id="seo-all-fixes">.seo-card-link{display:inline-flex!important;margin-top:16px!important;font-weight:700!important}.seo-external-resource{margin:32px auto;max-width:900px;padding:16px;text-align:center}.seo-external-resource a{font-weight:700}</style></head>');fs.writeFileSync(file,h);n++;});console.log(`Combined SEO fixes applied to ${n} HTML pages.`);
