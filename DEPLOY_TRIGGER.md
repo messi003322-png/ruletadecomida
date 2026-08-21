@@ -1,3 +1,3 @@
 Deployment trigger for Ruleta de Comida.
-SEO growth package: internal link improvements, external authority link, breadcrumbs, favicon metadata, popular food hubs, focused Pizza/Sushi content, and professional visual polish.
-Production rebuild requested: 2026-08-21 16:17 UTC.
+Production rebuild: professional homepage cleanup, no repeated guide blocks, one curated section, cleaner footer.
+Production rebuild requested: 2026-08-21 17:22 UTC.
