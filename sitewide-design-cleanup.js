@@ -60,18 +60,22 @@ function replaceGenericControls(html){
     return `<${tag}${attrs}>${label}</${tag}>`;
   });
 }
-function polishShortcutSection(html){
-  if(!/Atajos populares/i.test(html)) return html;
-  return replaceGenericControls(html);
+function removePopularShortcuts(html){
+  const sectionPattern=/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*Atajos populares(?:(?!<\/section>)[\s\S])*<\/section>/gi;
+  return html.replace(sectionPattern,'');
 }
-let pages=0,replaced=0;
+function polishShortcutSection(html){
+  return removePopularShortcuts(html);
+}
+let pages=0,replaced=0,removed=0;
 walk(OUT,file=>{
   let html=fs.readFileSync(file,'utf8');
   const before=html;
-  html=polishShortcutSection(html);
-  html=replaceGenericControls(html);
+  const afterShortcuts=polishShortcutSection(html);
+  if(afterShortcuts!==html) removed++;
+  html=replaceGenericControls(afterShortcuts);
   if(html!==before) replaced++;
   fs.writeFileSync(file,html,'utf8');
   pages++;
 });
-console.log(`Sitewide UX cleanup complete: ${pages} HTML pages checked; ${replaced} pages cleaned of generic labels.`);
+console.log(`Sitewide UX cleanup complete: ${pages} HTML pages checked; ${replaced} pages cleaned; ${removed} shortcut sections removed.`);
