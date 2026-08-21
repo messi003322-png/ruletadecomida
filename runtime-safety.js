@@ -16,9 +16,13 @@ function fix(file) {
 
   // Repair the known malformed path.replace variants that can make an inline
   // script fail to parse and leave the home view blank.
-  text = text
-    .replace(/path\.replace\(\/\\\/g,(['\"])/g, 'path.replace(/\\//g,$1')
-    .replace(/path\.replace\(\/\\\/g,\s*(['\"])/g, 'path.replace(/\\//g,$1');
+  const replacements = [
+    ["path.replace(/\\/g,'/')", "path.replace(/\\//g,'/')"],
+    ["path.replace(/\\/g, '/')", "path.replace(/\\//g, '/')"],
+    ['path.replace(/\\/g,"/")', 'path.replace(/\\//g,"/")'],
+    ['path.replace(/\\/g, "/")', 'path.replace(/\\//g, "/")']
+  ];
+  for (const [bad, good] of replacements) text = text.split(bad).join(good);
 
   const safety = `<script id="ruleta-runtime-safety">
 (function(){
