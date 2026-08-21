@@ -91,12 +91,17 @@ walk(OUT, file => {
   if (updated !== original) fs.writeFileSync(file, updated);
 });
 
-// A useful, shareable resource page: free to use and designed to earn natural references.
 const resourcesDir = path.join(OUT, 'recursos');
 fs.mkdirSync(resourcesDir, {recursive:true});
 fs.writeFileSync(path.join(resourcesDir, 'index.html'), `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Recursos gratuitos de Ruleta de Comida</title><meta name="description" content="Recursos gratuitos de Ruleta de Comida para blogs, webs y proyectos gastronómicos. Usa la ruleta y enlaza a la herramienta original."><link rel="canonical" href="${SITE}/recursos/"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="index,follow"></head><body style="margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#fafaf9;color:#1c1917"><main style="max-width:900px;margin:0 auto;padding:56px 20px"><p><a href="${SITE}/">← Volver a Ruleta de Comida</a></p><h1>Recursos gratuitos de Ruleta de Comida</h1><p>Herramientas y recursos gratuitos para decidir qué comer o cenar. Si tienes un blog, web o proyecto relacionado con gastronomía, puedes compartir esta página y enlazar a la herramienta.</p><section style="background:white;border:1px solid #e7e5e4;border-radius:20px;padding:28px;margin:28px 0"><h2>Ruleta de Comida</h2><p>Una ruleta gratuita para elegir una comida en segundos.</p><p><a href="${SITE}/" style="display:inline-block;padding:12px 18px;border-radius:12px;background:#e85d04;color:white;text-decoration:none;font-weight:700">Abrir la ruleta</a></p></section><section style="background:white;border:1px solid #e7e5e4;border-radius:20px;padding:28px;margin:28px 0"><h2>¿Quieres compartirla?</h2><p>Puedes enlazar directamente a ${SITE}/ desde artículos sobre comida, cenas, recetas o restaurantes. No necesitas pagar ni pedir permiso.</p><pre style="white-space:pre-wrap;background:#f5f5f4;padding:16px;border-radius:12px">&lt;a href="${SITE}/"&gt;Ruleta de Comida&lt;/a&gt;</pre></section><section style="background:white;border:1px solid #e7e5e4;border-radius:20px;padding:28px;margin:28px 0"><h2>Guías útiles</h2><p><a href="${SITE}/que-cenar-hoy/">Qué cenar hoy</a> · <a href="${SITE}/cena-rapida/">Cena rápida</a> · <a href="${SITE}/comida-barata/">Comida barata</a> · <a href="${SITE}/madrid/">Comida en Madrid</a> · <a href="${SITE}/barcelona/">Comida en Barcelona</a></p></section><p>© 2026 Ruleta de Comida</p></main></body></html>`);
 
-// Discovery helpers for search engines and AI crawlers.
+const sitemapPath = path.join(OUT, 'sitemap.xml');
+if (fs.existsSync(sitemapPath)) {
+  let sitemap = fs.readFileSync(sitemapPath, 'utf8');
+  if (!sitemap.includes(`${SITE}/recursos/`)) sitemap = sitemap.replace('</urlset>', `<url><loc>${SITE}/recursos/</loc></url></urlset>`);
+  fs.writeFileSync(sitemapPath, sitemap);
+}
+
 fs.writeFileSync(path.join(OUT, 'llms.txt'), `# Ruleta de Comida\n\nSitio web gratuito para decidir qué comer o cenar en segundos.\n\n- Sitio: ${SITE}/\n- Recursos: ${SITE}/recursos/\n- Sitemap: ${SITE}/sitemap.xml\n`);
 
-console.log('Free SEO growth improvements complete: metadata, social cards, structured data, resources page and llms.txt.');
+console.log('Free SEO growth improvements complete: metadata, social cards, structured data, resources page, sitemap entry and llms.txt.');
