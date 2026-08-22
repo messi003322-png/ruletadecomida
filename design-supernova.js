@@ -37,8 +37,7 @@ function homeQuick(html){
   return html.replace(/(<section[^>]*id=["']home-explore["'][^>]*>)/i,block+'$1');
 }
 function dock(html){
-  const nav=`<nav class="rf-supernova-dock" aria-label="Navegación rápida"><a href="${SITE}/"><b>⌂</b>Inicio</a><a href="${SITE}/que-cenar-hoy/"><b>☷</b>Ideas</a><a href="${SITE}/#ruleta"><b>✦</b>Girar</a></nav><button class="rf-supernova-top" type="button" aria-label="Volver arriba">↑</button>`;
-  return html.replace(/<\/body>/i,nav+'</body>');
+  return html;
 }
 function script(html){
   const js=`<script id="rf-supernova-js">(function(){var top=document.querySelector('.rf-supernova-top');if(top){top.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});window.addEventListener('scroll',function(){top.classList.toggle('is-visible',window.scrollY>520)},{passive:true})}document.querySelectorAll('a[href="#ruleta"]').forEach(function(a){a.addEventListener('click',function(){var w=document.getElementById('ruleta');if(w)w.classList.add('rf-supernova-target');setTimeout(function(){if(w)w.classList.remove('rf-supernova-target')},900)})})})();</script>`;
