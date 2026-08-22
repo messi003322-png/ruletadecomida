@@ -38,3 +38,13 @@ walk(OUT,file=>{
 });
 fs.writeFileSync(path.join(OUT,'site.webmanifest'),JSON.stringify(manifest,null,2),'utf8');
 console.log(`Declaraciones de favicon integradas en ${count} páginas.`);
+
+// Copiar favicons estáticos desde la raíz al directorio de salida
+const icons = ['favicon.ico', 'favicon-16x16.png', 'favicon-32x32.png', 'apple-touch-icon.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png'];
+icons.forEach(icon => {
+  const src = path.join(process.cwd(), icon);
+  const dest = path.join(OUT, icon);
+  if(fs.existsSync(src)) {
+    fs.copyFileSync(src, dest);
+  }
+});
