@@ -10,6 +10,11 @@
       "permanent": true
     },
     {
+      "source": "/guia-comidas-diarias/",
+      "destination": "/guia-completa-de-comidas/",
+      "permanent": true
+    },
+    {
       "source": "/guia-comidas-diarias/:path*",
       "destination": "/guia-completa-de-comidas/:path*",
       "permanent": true
