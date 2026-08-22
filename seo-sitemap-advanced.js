@@ -27,6 +27,7 @@ function getPriority(url){
   if(rel==='/') return {p:'1.0',f:'daily'};
   if(pillars.includes(rel)) return {p:'0.9',f:'weekly'};
   if(rel.split('/').length===3 && !rel.includes('-')) return {p:'0.8',f:'weekly'}; // e.g. /madrid/, /tapas/
+  if(/^\/[^/]+\/[^/]+\/$/.test(rel)) return {p:'0.7',f:'weekly'}; // e.g. /madrid/pizza/
   if(rel.includes('comida-')||rel.includes('cena-')) return {p:'0.7',f:'monthly'};
   return {p:'0.5',f:'monthly'}; // long tail (pizza-madrid)
 }

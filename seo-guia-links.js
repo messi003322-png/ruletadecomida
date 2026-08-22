@@ -31,7 +31,7 @@ walk(OUT, file => {
   let html = fs.readFileSync(file, 'utf8');
   if (html.includes('rf-final-footer')) {
     // Inject a subtle link in the footer brand section
-    const footerLink = `<p style="margin-top:12px!important"><a href="${SITE}/guia-completa-de-comidas/" style="color:inherit;text-decoration:underline">Ver Guía Completa de Comidas</a></p>`;
+    const footerLink = `<p style="margin-top:12px!important"><a href="${SITE}/guia-completa-de-comidas/" style="color:inherit;text-decoration:underline">Ver Guía Completa de Comidas</a><span aria-hidden="true"> · </span><a href="${SITE}/comidas-por-ciudad/" style="color:inherit;text-decoration:underline">Explorar comidas por ciudad</a></p>`;
     html = html.replace(/(<div class=["']rf-footer-brand["'][^>]*>[\s\S]*?<\/div>)/i, `$1${footerLink}`);
     fs.writeFileSync(file, html, 'utf8');
     count++;
