@@ -1,10 +1,10 @@
 {
   "name": "ruletadecomida",
   "private": true,
-  "description": "Ruleta de Comida — build de producción con mejoras UX, diseño y SEO",
+  "description": "Ruleta de Comida — sitio estático publicado desde el ZIP proporcionado",
   "version": "2026.08.21",
   "scripts": {
-    "build": "node prebuild.js && node build.js && node seo-pages.js && node growth-pages.js && node seo-max.js && node footer-pages.js && node footer-fix.js && node visual-refresh.js && node responsive-footer-fix.js && node wow-design.js && node spacing-fix.js && node footer-clean.js && node seo-free-growth.js && node seo-link-fix.js && node seo-all-fixes.js && node seo-traffic-max.js && node seo-final-polish.js && node sitewide-design-cleanup.js && node professional-final-polish.js && node sitewide-pro-upgrade.js && node site-visual-redesign.js && node share-float.js && node seo-guia-completa.js && node seo-guia-links.js && node seo-programmatic-pages.js && node seo-pillars-enhancement.js && node seo-internal-linking.js && node seo-pillar-content.js && node seo-sitemap-advanced.js && node design-supernova.js && node design-atelier.js && node favicon-links.js && node runtime-safety.js"
+    "build": "node static-build.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.16"
