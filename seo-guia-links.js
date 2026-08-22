@@ -8,7 +8,7 @@ if (fs.existsSync(homePath)) {
   let html = fs.readFileSync(homePath, 'utf8');
   
   // Add link to the new guide in the home explore section
-  const newLink = `<a class="seo-card" href="${SITE}/guia-comidas-diarias/"><strong>Guía Completa de Comidas</strong><span>Ideas para desayuno, almuerzo, merienda y cena en una sola guía.</span></a>`;
+  const newLink = `<a class="seo-card" href="${SITE}/guia-completa-de-comidas/"><strong>Guía Completa de Comidas</strong><span>Ideas para desayuno, almuerzo, merienda y cena en una sola guía.</span></a>`;
   
   if(html.includes('seo-hub-grid')){
     html = html.replace(/<div class=["']seo-hub-grid["'][^>]*>/i, `$&${newLink}`);
@@ -31,7 +31,7 @@ walk(OUT, file => {
   let html = fs.readFileSync(file, 'utf8');
   if (html.includes('rf-final-footer')) {
     // Inject a subtle link in the footer brand section
-    const footerLink = `<p style="margin-top:12px!important"><a href="${SITE}/guia-comidas-diarias/" style="color:inherit;text-decoration:underline">Ver Guía Completa de Comidas</a></p>`;
+    const footerLink = `<p style="margin-top:12px!important"><a href="${SITE}/guia-completa-de-comidas/" style="color:inherit;text-decoration:underline">Ver Guía Completa de Comidas</a></p>`;
     html = html.replace(/(<div class=["']rf-footer-brand["'][^>]*>[\s\S]*?<\/div>)/i, `$1${footerLink}`);
     fs.writeFileSync(file, html, 'utf8');
     count++;

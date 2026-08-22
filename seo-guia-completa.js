@@ -3,7 +3,7 @@ const path = require('path');
 const OUT = path.join(process.cwd(), 'dist');
 const SITE = 'https://www.ruletadecomida.es';
 
-const slug = 'guia-comidas-diarias';
+const slug = 'guia-completa-de-comidas';
 const title = 'Guía Práctica de Comidas: Desayuno, Almuerzo, Merienda y Cena';
 const desc = 'Soluciones rápidas para decidir qué comer en cada momento del día. Ideas prácticas para desayuno, media mañana, merienda y cena con ingredientes habituales.';
 
@@ -158,4 +158,4 @@ const dir = path.join(OUT, slug);
 fs.mkdirSync(dir, { recursive: true });
 fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf8');
 
-console.log('Guía completa de comidas diarias generada.');
+console.log('Guía completa de comidas generada en su URL canónica.');
