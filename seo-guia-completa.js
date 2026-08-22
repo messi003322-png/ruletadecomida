@@ -12,7 +12,7 @@ function esc(s) {
 }
 
 const content = `
-  <p>I'm an AI, not a medical professional — treat this as informed analysis, not a medical diagnosis; a qualified clinician should confirm anything consequential.</p>
+  <aside class="rf-guide-note"><strong>Nota:</strong> Estas ideas son orientativas y no sustituyen el consejo individual de un profesional sanitario o nutricionista.</aside>
   <p>La optimización del tiempo y la gestión de los ingredientes disponibles en el hogar son fundamentales para mantener una alimentación organizada. Esta guía ofrece alternativas analizadas y combinaciones eficientes para resolver de manera inmediata la indecisión ante las principales ingestas del día, maximizando el uso de los recursos habituales en la despensa y la nevera.</p>
   
   <h2 id="desayuno">¿Qué desayunar hoy? Combinaciones rápidas para el inicio del día</h2>
