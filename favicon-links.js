@@ -3,7 +3,7 @@ const path=require('path');
 const OUT=path.join(process.cwd(),'dist');
 
 const links=`
-<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -40,7 +40,7 @@ fs.writeFileSync(path.join(OUT,'site.webmanifest'),JSON.stringify(manifest,null,
 console.log(`Declaraciones de favicon integradas en ${count} páginas.`);
 
 // Copiar favicons estáticos desde la raíz al directorio de salida
-const icons = ['favicon.ico', 'favicon-16x16.png', 'favicon-32x32.png', 'apple-touch-icon.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png'];
+const icons = ['favicon.png', 'favicon.ico', 'favicon-16x16.png', 'favicon-32x32.png', 'apple-touch-icon.png', 'android-chrome-192x192.png', 'android-chrome-512x512.png'];
 icons.forEach(icon => {
   const src = path.join(process.cwd(), icon);
   const dest = path.join(OUT, icon);
