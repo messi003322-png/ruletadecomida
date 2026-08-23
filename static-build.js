@@ -93,6 +93,7 @@ try { require('./scripts/seo-postprocess.js').run(); } catch (e) { console.warn(
 try { require('./scripts/ultra-design.js').run(); } catch (e) { console.warn('[static-build] ultra-design:', e.message); }
 try { require('./scripts/fix-chips.js').run(); } catch (e) { console.warn('[static-build] fix-chips:', e.message); }
 try { require('./scripts/home-faq-seo.js').run(); } catch (e) { console.warn('[static-build] home-faq:', e.message); }
+try { require('./scripts/generate-meal-layers.js').run(); } catch (e) { console.warn('[static-build] meal-layers:', e.message); }
 
 for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
   if (!fs.existsSync(path.join(outputDir, required))) {
@@ -100,4 +101,4 @@ for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
   }
 }
 
-console.log(`Sitio publicado: ${entries.length} entradas | SEO + design + chips + FAQ home en dist/.`);
+console.log(`Sitio publicado: ${entries.length} entradas | SEO + design + FAQ + capas comida (desayuno/almuerzo/merienda/cena).`);
