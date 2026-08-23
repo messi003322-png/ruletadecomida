@@ -1,6 +1,7 @@
 /**
  * Fix chip grids sitewide
  * Handles: footer.seo-map, footerclass="seo-map", #seo-map-ciudades, .links
+ * Nav: Inicio • Ruleta
  */
 const fs = require('fs');
 const path = require('path');
@@ -8,7 +9,6 @@ const path = require('path');
 const DIST = path.join(__dirname, '..', 'dist');
 
 const CHIP_CSS = `<style id="rf-chips-fix">
-/* ===== CHIP GRID UNIVERSAL (fuerza máxima) ===== */
 footer.seo-map,
 .seo-map,
 footer[class*="seo-map"]{
@@ -36,7 +36,6 @@ footer.seo-map h3,
 footer.seo-map h3:not(:first-of-type),
 .seo-map h3:not(:first-of-type){margin-top:28px!important}
 
-/* CONTENEDOR: flex + oculta cualquier texto suelto (·) */
 footer.seo-map .links,
 .seo-map .links,
 footer.seo-map .rf-chip-grid,
@@ -55,7 +54,6 @@ div.links{
   color:transparent!important;
 }
 
-/* CHIPS */
 footer.seo-map .links a,
 .seo-map .links a,
 footer.seo-map .rf-chip-grid a,
@@ -102,9 +100,18 @@ footer.seo-map > p a,
   color:#c2410c!important;
   font-weight:700!important;
   font-size:.9rem!important;
+  text-decoration:underline!important;
+  text-underline-offset:2px!important;
+}
+footer.seo-map > p .rf-nav-sep,
+.seo-map > p .rf-nav-sep{
+  display:inline!important;
+  margin:0 .35em!important;
+  color:#a89080!important;
+  font-weight:500!important;
+  text-decoration:none!important;
 }
 
-/* Home dark footer */
 #seo-map-ciudades{
   max-width:1120px!important;
   margin:0 auto!important;
@@ -182,7 +189,6 @@ function chipGrid(links) {
   );
 }
 
-/** Reescribe CUALQUIER div.links que tenga 2+ anchors */
 function fixAllLinksDivs(html) {
   return html.replace(
     /<div\s+class=["'][^"']*links[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi,
@@ -194,17 +200,27 @@ function fixAllLinksDivs(html) {
   );
 }
 
-/** Normaliza footerclass / footer class seo-map */
+/** Inicio • Ruleta (y variantes) */
+function fixInicioRuleta(html) {
+  // Patrón: <a ...>Inicio</a> ... <a ...>Ruleta</a>
+  return html.replace(
+    /(<a\s+[^>]*>\s*Inicio\s*<\/a>)\s*(?:·|&middot;|&bull;|•)?\s*(<a\s+[^>]*>\s*Ruleta\s*<\/a>)/gi,
+    '$1 <span class="rf-nav-sep" aria-hidden="true">•</span> $2'
+  );
+}
+
 function fixSeoMapFooter(html) {
-  // Primero arreglar el typo footerclass=
   html = html.replace(/<footer\s*class=/gi, '<footer class=');
 
   return html.replace(
     /<footer\s+class=["'][^"']*seo-map[^"']*["'][^>]*>([\s\S]*?)<\/footer>/gi,
     (full, inner) => {
       let out = fixAllLinksDivs(inner);
-      // Quitar · restantes en texto suelto
-      out = out.replace(/\s*·\s*/g, ' ');
+      // Quitar · solo en zonas de chips, no en nav
+      out = out.replace(/(<div class="rf-chip-grid[^>]*>)([\s\S]*?)(<\/div>)/gi, (m, open, body, close) => {
+        return open + body.replace(/\s*·\s*/g, '') + close;
+      });
+      out = fixInicioRuleta(out);
       return `<footer class="seo-map">${out}</footer>`;
     }
   );
@@ -250,6 +266,7 @@ function run() {
     html = fixSeoMapFooter(html);
     html = fixAllLinksDivs(html);
     html = fixSeoMapCiudades(html);
+    html = fixInicioRuleta(html);
 
     html = html.replace(/<style id="rf-chips-fix">[\s\S]*?<\/style>/i, '');
     if (/<\/head>/i.test(html)) {
