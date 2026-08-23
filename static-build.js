@@ -94,6 +94,7 @@ try { require('./scripts/ultra-design.js').run(); } catch (e) { console.warn('[s
 try { require('./scripts/fix-chips.js').run(); } catch (e) { console.warn('[static-build] fix-chips:', e.message); }
 try { require('./scripts/home-faq-seo.js').run(); } catch (e) { console.warn('[static-build] home-faq:', e.message); }
 try { require('./scripts/generate-meal-layers.js').run(); } catch (e) { console.warn('[static-build] meal-layers:', e.message); }
+try { require('./scripts/home-meal-filters.js').run(); } catch (e) { console.warn('[static-build] meal-filters:', e.message); }
 
 for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
   if (!fs.existsSync(path.join(outputDir, required))) {
@@ -101,4 +102,4 @@ for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
   }
 }
 
-console.log(`Sitio publicado: ${entries.length} entradas | SEO + design + FAQ + capas comida (desayuno/almuerzo/merienda/cena).`);
+console.log('Sitio publicado: SEO + capas comida + filtros ruleta home (Desayuno/Comida/Merienda/Cena).');
