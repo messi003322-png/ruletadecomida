@@ -1,0 +1,91 @@
+{
+  "updated": "2026-08-23",
+  "note": "Titles 50-60 chars ideal. Descriptions 140-155 chars. Usar en <title> y <meta name=description>.",
+  "pages": [
+    {
+      "path": "/",
+      "title": "¿Qué cenar hoy? Ruleta de comida en 3 segundos 🎯",
+      "description": "¿No sabes qué cenar hoy? Gira la ruleta y decide en 3 segundos. Ideas rápidas, baratas y realistas. Gratis y sin registro."
+    },
+    {
+      "path": "/madrid/",
+      "title": "¿Qué cenar hoy en Madrid? Ruleta en 3 segundos 🎯",
+      "description": "¿Bloqueado sin saber qué cenar en Madrid? Gira la ruleta y elige en 3 segundos. Opciones rápidas, baratas y a domicilio."
+    },
+    {
+      "path": "/barcelona/",
+      "title": "¿Qué cenar hoy en Barcelona? Decide en 3 segundos",
+      "description": "No pierdas media hora eligiendo cena en Barcelona. Gira la ruleta: pizza, sushi, tapas y más. Sin registro, resultado al instante."
+    },
+    {
+      "path": "/valencia/",
+      "title": "¿Qué cenar hoy en Valencia? Ruleta de comida rápida",
+      "description": "¿Qué cenar en Valencia esta noche? Gira la ruleta y elige en 3 segundos. Ideas realistas, baratas y fáciles de preparar o pedir."
+    },
+    {
+      "path": "/sevilla/",
+      "title": "¿Qué cenar hoy en Sevilla? Ruleta en 3 segundos 🎯",
+      "description": "Cansado de no saber qué cenar en Sevilla? Gira la ruleta: tapas, pizza, kebab y más. Decisión rápida, sin listas interminables."
+    },
+    {
+      "path": "/zaragoza/",
+      "title": "¿Qué cenar hoy en Zaragoza? Ideas en 3 segundos",
+      "description": "Gira la ruleta y decide qué cenar en Zaragoza ahora mismo. Opciones rápidas, baratas y realistas. Gratis y sin registro."
+    },
+    {
+      "path": "/malaga/",
+      "title": "¿Qué cenar hoy en Málaga? Ruleta de comida 🎯",
+      "description": "¿No sabes qué cenar en Málaga? Gira la ruleta en 3 segundos. Pizza, sushi, espetos y cenas rápidas sin complicaciones."
+    },
+    {
+      "path": "/murcia/",
+      "title": "¿Qué cenar hoy en Murcia? Decide con la ruleta",
+      "description": "Sal del bloqueo de qué cenar en Murcia. Gira la ruleta y elige una opción clara en segundos. Rápido, barato y sin registro."
+    },
+    {
+      "path": "/palma/",
+      "title": "¿Qué cenar hoy en Palma? Ruleta de ideas rápidas",
+      "description": "¿Qué cenar en Palma esta noche? Gira la ruleta y decide en 3 segundos. Ideas realistas para comer ya, sin perder tiempo."
+    },
+    {
+      "path": "/las-palmas/",
+      "title": "¿Qué cenar hoy en Las Palmas? Ruleta en 3s",
+      "description": "Gira la ruleta y elige qué cenar en Las Palmas en segundos. Opciones rápidas, baratas y fáciles. Sin registro."
+    },
+    {
+      "path": "/bilbao/",
+      "title": "¿Qué cenar hoy en Bilbao? Ruleta de comida 🎯",
+      "description": "¿Indeciso en Bilbao? Gira la ruleta y decide tu cena en 3 segundos. Pintxos, pizza, sushi y más opciones realistas."
+    },
+    {
+      "path": "/alicante/",
+      "title": "¿Qué cenar hoy en Alicante? Decide en 3 segundos",
+      "description": "No sepas qué cenar en Alicante? Gira la ruleta: ideas rápidas, baratas y a domicilio. Resultado al instante, sin registro."
+    },
+    {
+      "path": "/cordoba/",
+      "title": "¿Qué cenar hoy en Córdoba? Ruleta de comida rápida",
+      "description": "Gira la ruleta y elige qué cenar en Córdoba en 3 segundos. Opciones sencillas, baratas y realistas para esta noche."
+    },
+    {
+      "path": "/cena-rapida/",
+      "title": "Cena rápida en menos de 15 minutos | Ruleta",
+      "description": "Ideas de cena rápida listas en menos de 15 minutos. Gira la ruleta y come ya: sin recetas largas ni complicaciones."
+    },
+    {
+      "path": "/comida-barata/",
+      "title": "Comida barata: cenas por menos de 3€ | Ruleta",
+      "description": "Platos baratos y realistas por poco dinero. Gira la ruleta y decide qué cenar sin gastar de más. Sin registro."
+    },
+    {
+      "path": "/que-cenar-hoy/",
+      "title": "¿Qué cenar hoy? Respuesta en 3 segundos 🎯",
+      "description": "La pregunta de todas las noches, resuelta en 3 segundos. Gira la ruleta de comida y elige tu menú ya. Gratis."
+    },
+    {
+      "path": "/no-se-que-cenar/",
+      "title": "No sé qué cenar: ruleta de ideas en 3 segundos",
+      "description": "Sal del bloqueo mental. Gira la ruleta y obtén una idea concreta de cena en segundos. Sin listas interminables."
+    }
+  ]
+}
