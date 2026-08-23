@@ -95,6 +95,7 @@ try { require('./scripts/fix-chips.js').run(); } catch (e) { console.warn('[stat
 try { require('./scripts/home-faq-seo.js').run(); } catch (e) { console.warn('[static-build] home-faq:', e.message); }
 try { require('./scripts/generate-meal-layers.js').run(); } catch (e) { console.warn('[static-build] meal-layers:', e.message); }
 try { require('./scripts/home-meal-filters.js').run(); } catch (e) { console.warn('[static-build] meal-filters:', e.message); }
+try { require('./scripts/home-guide-moment.js').run(); } catch (e) { console.warn('[static-build] guide-moment:', e.message); }
 
 for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
   if (!fs.existsSync(path.join(outputDir, required))) {
@@ -102,4 +103,4 @@ for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
   }
 }
 
-console.log('Sitio publicado: SEO + capas comida + filtros ruleta home (Desayuno/Comida/Merienda/Cena).');
+console.log('Sitio: meal layers 79x4 + ruleta filters + guía momento. Sin ad-refresh.');
