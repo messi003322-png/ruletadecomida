@@ -1,8 +1,6 @@
 /**
- * Fix chip grids sitewide:
- * - footer.seo-map .links (páginas de ciudad)
- * - #seo-map-ciudades (home/footer)
- * Elimina separadores " · " y aplica markup limpio + CSS
+ * Fix chip grids sitewide
+ * Handles: footer.seo-map, footerclass="seo-map", #seo-map-ciudades, .links
  */
 const fs = require('fs');
 const path = require('path');
@@ -10,9 +8,10 @@ const path = require('path');
 const DIST = path.join(__dirname, '..', 'dist');
 
 const CHIP_CSS = `<style id="rf-chips-fix">
-/* ===== CHIP GRID UNIVERSAL ===== */
+/* ===== CHIP GRID UNIVERSAL (fuerza máxima) ===== */
 footer.seo-map,
-.seo-map{
+.seo-map,
+footer[class*="seo-map"]{
   max-width:720px!important;
   margin:40px auto 24px!important;
   padding:28px 18px 32px!important;
@@ -20,9 +19,12 @@ footer.seo-map,
   background:transparent!important;
   color:#1a1210!important;
   text-align:left!important;
+  font-size:inherit!important;
 }
 footer.seo-map h3,
 .seo-map h3{
+  display:block!important;
+  width:100%!important;
   margin:0 0 14px!important;
   padding:0!important;
   color:#1a1210!important;
@@ -31,69 +33,78 @@ footer.seo-map h3,
   letter-spacing:-.02em!important;
   line-height:1.3!important;
 }
-footer.seo-map h3:not(:first-child),
-.seo-map h3:not(:first-child){
-  margin-top:28px!important;
-}
+footer.seo-map h3:not(:first-of-type),
+.seo-map h3:not(:first-of-type){margin-top:28px!important}
+
+/* CONTENEDOR: flex + oculta cualquier texto suelto (·) */
 footer.seo-map .links,
 .seo-map .links,
 footer.seo-map .rf-chip-grid,
-.seo-map .rf-chip-grid{
+.seo-map .rf-chip-grid,
+div.links{
   display:flex!important;
   flex-wrap:wrap!important;
+  align-items:center!important;
   gap:8px!important;
-  margin:0 0 4px!important;
+  margin:0 0 8px!important;
   padding:0!important;
   font-size:0!important;
   line-height:0!important;
+  letter-spacing:0!important;
+  word-spacing:0!important;
+  color:transparent!important;
 }
+
+/* CHIPS */
 footer.seo-map .links a,
 .seo-map .links a,
 footer.seo-map .rf-chip-grid a,
-.seo-map .rf-chip-grid a{
+.seo-map .rf-chip-grid a,
+div.links a{
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
   min-height:40px!important;
   margin:0!important;
   padding:8px 14px!important;
-  border:1px solid rgba(0,0,0,.1)!important;
+  border:1.5px solid rgba(0,0,0,.1)!important;
   border-radius:999px!important;
   background:#fff!important;
   color:#3d2e28!important;
   font-size:.84rem!important;
   font-weight:650!important;
   line-height:1.25!important;
+  letter-spacing:-.01em!important;
   text-decoration:none!important;
   white-space:nowrap!important;
-  box-shadow:0 1px 3px rgba(0,0,0,.04)!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.05)!important;
   transition:border-color .2s,color .2s,background .2s,transform .2s,box-shadow .2s!important;
 }
 footer.seo-map .links a:hover,
 .seo-map .links a:hover,
-footer.seo-map .rf-chip-grid a:hover,
-.seo-map .rf-chip-grid a:hover{
+div.links a:hover{
   border-color:#ff6b1a!important;
   color:#c2410c!important;
   background:#fff7ed!important;
   transform:translateY(-1px)!important;
-  box-shadow:0 4px 12px rgba(255,100,30,.12)!important;
+  box-shadow:0 4px 12px rgba(255,100,30,.14)!important;
 }
+
 footer.seo-map > p,
 .seo-map > p{
   margin:20px 0 0!important;
   font-size:.9rem!important;
+  line-height:1.5!important;
   color:#7a6358!important;
 }
 footer.seo-map > p a,
 .seo-map > p a{
   color:#c2410c!important;
   font-weight:700!important;
-  text-decoration:underline!important;
-  text-underline-offset:2px!important;
+  font-size:.9rem!important;
 }
 
-/* Home footer dark chips */
+/* Home dark footer */
 #seo-map-ciudades{
   max-width:1120px!important;
   margin:0 auto!important;
@@ -108,10 +119,7 @@ footer.seo-map > p a,
   font-weight:850!important;
   letter-spacing:.1em!important;
   text-transform:uppercase!important;
-}
-#seo-map-ciudades > .rf-chip-title + .rf-chip-title,
-#seo-map-ciudades > p.font-semibold:nth-of-type(2){
-  margin-top:28px!important;
+  line-height:1.3!important;
 }
 #seo-map-ciudades > p.mb-4,
 #seo-map-ciudades > .rf-chip-grid{
@@ -121,6 +129,7 @@ footer.seo-map > p a,
   margin:0 0 8px!important;
   font-size:0!important;
   line-height:0!important;
+  color:transparent!important;
 }
 #seo-map-ciudades a{
   display:inline-flex!important;
@@ -146,8 +155,7 @@ footer.seo-map > p a,
 
 @media(max-width:767px){
   footer.seo-map,.seo-map{padding:24px 14px 28px!important;margin:28px 0 16px!important}
-  footer.seo-map .links a,.seo-map .links a,
-  footer.seo-map .rf-chip-grid a,.seo-map .rf-chip-grid a{
+  footer.seo-map .links a,.seo-map .links a,div.links a{
     min-height:38px!important;padding:7px 12px!important;font-size:.8rem!important;
   }
   #seo-map-ciudades{padding:22px 16px 100px!important}
@@ -160,41 +168,43 @@ function extractLinks(htmlFragment) {
   const re = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
   let m;
   while ((m = re.exec(htmlFragment)) !== null) {
-    links.push({ href: m[1], text: m[2].replace(/<[^>]+>/g, '').trim() });
+    const text = m[2].replace(/<[^>]+>/g, '').trim();
+    if (text) links.push({ href: m[1], text });
   }
   return links;
 }
 
 function chipGrid(links) {
   return (
-    '<div class="rf-chip-grid">' +
-    links
-      .map((l) => `<a href="${l.href}">${l.text}</a>`)
-      .join('') +
+    '<div class="rf-chip-grid links">' +
+    links.map((l) => `<a href="${l.href}">${l.text}</a>`).join('') +
     '</div>'
   );
 }
 
-function fixSeoMapFooter(html) {
-  // <footer class="seo-map"> ... </footer>
+/** Reescribe CUALQUIER div.links que tenga 2+ anchors */
+function fixAllLinksDivs(html) {
   return html.replace(
-    /<footer\s+class=["']seo-map["'][^>]*>([\s\S]*?)<\/footer>/gi,
+    /<div\s+class=["'][^"']*links[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi,
+    (m, content) => {
+      const links = extractLinks(content);
+      if (links.length < 2) return m;
+      return chipGrid(links);
+    }
+  );
+}
+
+/** Normaliza footerclass / footer class seo-map */
+function fixSeoMapFooter(html) {
+  // Primero arreglar el typo footerclass=
+  html = html.replace(/<footer\s*class=/gi, '<footer class=');
+
+  return html.replace(
+    /<footer\s+class=["'][^"']*seo-map[^"']*["'][^>]*>([\s\S]*?)<\/footer>/gi,
     (full, inner) => {
-      let out = inner;
-
-      // Reemplazar cada <div class="links">...</div>
-      out = out.replace(
-        /<div\s+class=["']links["'][^>]*>([\s\S]*?)<\/div>/gi,
-        (m, content) => {
-          const links = extractLinks(content);
-          if (!links.length) return m;
-          return chipGrid(links);
-        }
-      );
-
-      // Limpiar · sueltos en párrafos de navegación
-      out = out.replace(/\s*·\s*/g, ' · ');
-
+      let out = fixAllLinksDivs(inner);
+      // Quitar · restantes en texto suelto
+      out = out.replace(/\s*·\s*/g, ' ');
       return `<footer class="seo-map">${out}</footer>`;
     }
   );
@@ -204,22 +214,15 @@ function fixSeoMapCiudades(html) {
   return html.replace(
     /<div\s+id=["']seo-map-ciudades["'][^>]*>([\s\S]*?)<\/div>/gi,
     (full, inner) => {
-      let out = inner;
-
-      // Párrafos que contienen muchos <a> separados por ·
-      out = out.replace(/<p([^>]*)>([\s\S]*?)<\/p>/gi, (m, attrs, content) => {
+      let out = inner.replace(/<p([^>]*)>([\s\S]*?)<\/p>/gi, (m, attrs, content) => {
         const links = extractLinks(content);
-        if (links.length >= 2) {
-          return chipGrid(links);
-        }
-        // Títulos tipo "Ciudades principales"
+        if (links.length >= 2) return chipGrid(links);
         if (/font-semibold|Ciudades|Antojos/i.test(attrs + content)) {
           const text = content.replace(/<[^>]+>/g, '').trim();
           return `<p class="rf-chip-title font-semibold">${text}</p>`;
         }
         return m;
       });
-
       return full.replace(inner, out);
     }
   );
@@ -245,9 +248,9 @@ function run() {
     const before = html;
 
     html = fixSeoMapFooter(html);
+    html = fixAllLinksDivs(html);
     html = fixSeoMapCiudades(html);
 
-    // Inyectar CSS (reemplazar si ya existe)
     html = html.replace(/<style id="rf-chips-fix">[\s\S]*?<\/style>/i, '');
     if (/<\/head>/i.test(html)) {
       html = html.replace(/<\/head>/i, CHIP_CSS + '</head>');
@@ -256,14 +259,6 @@ function run() {
     if (html !== before) {
       fs.writeFileSync(file, html, 'utf8');
       n++;
-    } else if (/<\/head>/i.test(before)) {
-      // Aun así inyectar CSS
-      let h = before.replace(/<style id="rf-chips-fix">[\s\S]*?<\/style>/i, '');
-      h = h.replace(/<\/head>/i, CHIP_CSS + '</head>');
-      if (h !== before) {
-        fs.writeFileSync(file, h, 'utf8');
-        n++;
-      }
     }
   });
   console.log(`[fix-chips] Procesadas ${n} páginas`);
