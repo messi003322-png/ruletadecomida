@@ -89,10 +89,18 @@ for (const entry of entries) {
 zip.extractAllTo(outputDir, true);
 addFooterPolish(outputDir);
 
+// SEO: titles, descriptions, tablas y FAQ de ciudad
+try {
+  const seo = require('./scripts/seo-postprocess.js');
+  seo.run();
+} catch (err) {
+  console.warn('[static-build] SEO postprocess omitido:', err.message);
+}
+
 for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
   if (!fs.existsSync(path.join(outputDir, required))) {
     throw new Error(`El ZIP no contiene el archivo obligatorio: ${required}`);
   }
 }
 
-console.log(`Sitio estático del usuario publicado: ${entries.length} entradas extraídas y pie de página refinado en dist/.`);
+console.log(`Sitio estático del usuario publicado: ${entries.length} entradas extraídas, pie refinado y SEO post-process en dist/.`);
