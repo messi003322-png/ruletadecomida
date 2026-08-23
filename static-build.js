@@ -89,12 +89,18 @@ for (const entry of entries) {
 zip.extractAllTo(outputDir, true);
 addFooterPolish(outputDir);
 
-// SEO: titles, descriptions, tablas y FAQ de ciudad
+// SEO: titles, descriptions, tablas y FAQ
 try {
-  const seo = require('./scripts/seo-postprocess.js');
-  seo.run();
+  require('./scripts/seo-postprocess.js').run();
 } catch (err) {
   console.warn('[static-build] SEO postprocess omitido:', err.message);
+}
+
+// Ultra premium design system (todas las páginas)
+try {
+  require('./scripts/ultra-design.js').run();
+} catch (err) {
+  console.warn('[static-build] Ultra design omitido:', err.message);
 }
 
 for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
@@ -103,4 +109,4 @@ for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
   }
 }
 
-console.log(`Sitio estático del usuario publicado: ${entries.length} entradas extraídas, pie refinado y SEO post-process en dist/.`);
+console.log(`Sitio publicado: ${entries.length} entradas | footer + SEO + ultra-design aplicados en dist/.`);
