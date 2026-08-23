@@ -89,19 +89,9 @@ for (const entry of entries) {
 zip.extractAllTo(outputDir, true);
 addFooterPolish(outputDir);
 
-// SEO: titles, descriptions, tablas y FAQ
-try {
-  require('./scripts/seo-postprocess.js').run();
-} catch (err) {
-  console.warn('[static-build] SEO postprocess omitido:', err.message);
-}
-
-// Ultra premium design system (todas las páginas)
-try {
-  require('./scripts/ultra-design.js').run();
-} catch (err) {
-  console.warn('[static-build] Ultra design omitido:', err.message);
-}
+try { require('./scripts/seo-postprocess.js').run(); } catch (e) { console.warn('[static-build] SEO:', e.message); }
+try { require('./scripts/ultra-design.js').run(); } catch (e) { console.warn('[static-build] ultra-design:', e.message); }
+try { require('./scripts/fix-chips.js').run(); } catch (e) { console.warn('[static-build] fix-chips:', e.message); }
 
 for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
   if (!fs.existsSync(path.join(outputDir, required))) {
@@ -109,4 +99,4 @@ for (const required of ['index.html', 'sitemap.xml', 'robots.txt']) {
   }
 }
 
-console.log(`Sitio publicado: ${entries.length} entradas | footer + SEO + ultra-design aplicados en dist/.`);
+console.log(`Sitio publicado: ${entries.length} entradas | footer + SEO + design + chips en dist/.`);
