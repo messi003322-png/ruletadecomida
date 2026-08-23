@@ -1,32 +1,70 @@
 /**
- * Filtros de momento del día en la ruleta HOME.
- * FIX: no romper la sintaxis de DISHES (antes: paréntesis sin cerrar → ruleta en blanco).
+ * Ruleta HOME: momento + dieta + barato
+ * Arrays completos por comida. Sin refresh de anuncios.
  */
 const fs = require('fs');
 const path = require('path');
-
 const INDEX = path.join(__dirname, '..', 'dist', 'index.html');
 
-const MERENDA_DISHES = `
-window.__RF_MERENDA = [
-  { name:'Yogur con fruta', meal:'Merienda', time:5, budget:'€', desc:'Ligero y rápido.' },
-  { name:'Tostada con mermelada', meal:'Merienda', time:5, budget:'€', desc:'Clásico de tarde.' },
-  { name:'Café y galleta', meal:'Merienda', time:5, budget:'€', desc:'Pausa corta.' },
-  { name:'Batido de plátano', meal:'Merienda', time:8, budget:'€', desc:'Energía fácil.' },
-  { name:'Puñado de frutos secos', meal:'Merienda', time:2, budget:'€', desc:'Sin platos.' },
-  { name:'Chocolate a la taza', meal:'Merienda', time:10, budget:'€', desc:'Para días fríos.' },
-  { name:'Sándwich vegetal', meal:'Merienda', time:10, budget:'€', desc:'Algo más contundente.' },
-  { name:'Zumo y magdalena', meal:'Merienda', time:5, budget:'€', desc:'Simple y efectivo.' }
-];
+const DISH_BANKS = `
+window.__RF_DISH_BANKS = {
+  Desayuno: [
+    { name:'Tostadas con tomate', meal:'Desayuno', time:8, budget:'€', tags:['barato','vegano','sin-gluten-opcional'], desc:'Clásico español.' },
+    { name:'Huevos revueltos', meal:'Desayuno', time:10, budget:'€', tags:['barato','sin-gluten'], desc:'Rápidos y saciantes.' },
+    { name:'Yogur con fruta', meal:'Desayuno', time:5, budget:'€', tags:['barato','vegetariano'], desc:'Ligero y fresco.' },
+    { name:'Avena con frutos secos', meal:'Desayuno', time:8, budget:'€', tags:['barato','vegano'], desc:'Energía de mañana.' },
+    { name:'Café y bollería', meal:'Desayuno', time:5, budget:'€', tags:['barato','vegetariano'], desc:'Pausa rápida.' },
+    { name:'Churros o porras', meal:'Desayuno', time:15, budget:'€', tags:['barato','vegetariano'], desc:'Capricho de fin de semana.' },
+    { name:'Tostada de aguacate', meal:'Desayuno', time:10, budget:'€€', tags:['vegano'], desc:'Siempre funciona.' },
+    { name:'Zumo y tostada integral', meal:'Desayuno', time:7, budget:'€', tags:['barato','vegano'], desc:'Simple y efectivo.' },
+    { name:'Tortilla francesa', meal:'Desayuno', time:8, budget:'€', tags:['barato','sin-gluten'], desc:'En minutos.' },
+    { name:'Bowl de fruta', meal:'Desayuno', time:5, budget:'€', tags:['barato','vegano','sin-gluten'], desc:'Ligero y natural.' }
+  ],
+  Comida: [
+    { name:'Menú del día casero', meal:'Comida', time:30, budget:'€€', tags:['domicilio'], desc:'Completo y práctico.' },
+    { name:'Ensalada completa', meal:'Comida', time:12, budget:'€', tags:['barato','vegano','sin-gluten'], desc:'Fresca y rápida.' },
+    { name:'Pasta al pesto', meal:'Comida', time:15, budget:'€', tags:['barato','vegetariano'], desc:'Rápida y aromática.' },
+    { name:'Bocadillo contundente', meal:'Comida', time:10, budget:'€', tags:['barato','para-llevar'], desc:'Ideal para fuera.' },
+    { name:'Arroz con verduras', meal:'Comida', time:25, budget:'€', tags:['barato','vegano','sin-gluten'], desc:'Saciante.' },
+    { name:'Tortilla de patatas', meal:'Comida', time:25, budget:'€', tags:['barato','vegetariano','sin-gluten'], desc:'El clásico.' },
+    { name:'Pollo a la plancha', meal:'Comida', time:20, budget:'€€', tags:['sin-gluten'], desc:'Proteína sencilla.' },
+    { name:'Lentejas express', meal:'Comida', time:30, budget:'€', tags:['barato','vegano','sin-gluten'], desc:'Cuchara fácil.' },
+    { name:'Wrap de pollo', meal:'Comida', time:15, budget:'€€', tags:['para-llevar'], desc:'Ideal para uno.' },
+    { name:'Gazpacho', meal:'Comida', time:12, budget:'€', tags:['barato','vegano','sin-gluten'], desc:'Fresco y sin cocinar.' }
+  ],
+  Merienda: [
+    { name:'Yogur con fruta', meal:'Merienda', time:5, budget:'€', tags:['barato','vegetariano'], desc:'Ligero.' },
+    { name:'Tostada con mermelada', meal:'Merienda', time:5, budget:'€', tags:['barato','vegano'], desc:'Clásico de tarde.' },
+    { name:'Café y galleta', meal:'Merienda', time:5, budget:'€', tags:['barato','vegetariano'], desc:'Pausa corta.' },
+    { name:'Batido de plátano', meal:'Merienda', time:8, budget:'€', tags:['barato','vegano','sin-gluten'], desc:'Energía fácil.' },
+    { name:'Frutos secos', meal:'Merienda', time:2, budget:'€', tags:['barato','vegano','sin-gluten'], desc:'Sin platos.' },
+    { name:'Chocolate a la taza', meal:'Merienda', time:10, budget:'€', tags:['barato','vegetariano'], desc:'Días fríos.' },
+    { name:'Sándwich vegetal', meal:'Merienda', time:10, budget:'€', tags:['barato','vegano','para-llevar'], desc:'Algo más contundente.' },
+    { name:'Zumo y magdalena', meal:'Merienda', time:5, budget:'€', tags:['barato','vegetariano'], desc:'Simple.' }
+  ],
+  Cena: [
+    { name:'Pasta cremosa de limón', meal:'Cena', time:18, budget:'€', tags:['barato','vegetariano'], desc:'Ácida y rápida.' },
+    { name:'Tacos de pollo', meal:'Cena', time:25, budget:'€€', tags:['domicilio'], desc:'Pollo dorado y lima.' },
+    { name:'Ramen de miso', meal:'Cena', time:22, budget:'€€', tags:['vegetariano'], desc:'Caldo umami.' },
+    { name:'Tortilla de patatas', meal:'Cena', time:20, budget:'€', tags:['barato','vegetariano','sin-gluten'], desc:'No falla.' },
+    { name:'Salmón a la plancha', meal:'Cena', time:18, budget:'€€', tags:['sin-gluten'], desc:'Simple y elegante.' },
+    { name:'Pizza de sartén', meal:'Cena', time:25, budget:'€', tags:['barato','vegetariano'], desc:'Sin horno.' },
+    { name:'Arroz frito', meal:'Cena', time:20, budget:'€', tags:['barato','vegano'], desc:'Con el de ayer.' },
+    { name:'Quesadillas', meal:'Cena', time:12, budget:'€', tags:['barato','vegetariano'], desc:'Listas en un momento.' },
+    { name:'Ensalada de garbanzos', meal:'Cena', time:10, budget:'€', tags:['barato','vegano','sin-gluten'], desc:'Sin cocinar.' },
+    { name:'Crema de calabaza', meal:'Cena', time:30, budget:'€', tags:['barato','vegano','sin-gluten'], desc:'Reconfortante.' },
+    { name:'Hamburguesa casera', meal:'Cena', time:25, budget:'€€', tags:[], desc:'Con tus extras.' },
+    { name:'Noodles salteados', meal:'Cena', time:18, budget:'€', tags:['barato','vegano'], desc:'Rápidos y sabrosos.' }
+  ]
+};
 `;
 
 const FILTER_CSS = `<style id="rf-meal-filters-css">
-.rf-meal-filters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px auto 4px;max-width:560px;padding:0 12px;position:relative;z-index:5}
-.rf-meal-filters button{min-height:38px;padding:8px 14px;border-radius:999px;border:1.5px solid rgba(0,0,0,.1);background:#fff;color:#3d2e28;font-size:.84rem;font-weight:700;cursor:pointer;transition:border-color .2s,background .2s,color .2s,transform .15s}
-.rf-meal-filters button:hover{border-color:#ff6b1a;color:#c2410c;transform:translateY(-1px)}
-.rf-meal-filters button.is-active{border-color:#ff6b1a;background:linear-gradient(135deg,#fff7ed,#ffedd5);color:#c2410c;box-shadow:0 4px 12px rgba(255,100,30,.12)}
-.rf-meal-filters-hint{text-align:center;font-size:.78rem;color:#7a6358;margin:0 0 12px}
-@media(max-width:767px){.rf-meal-filters{gap:6px}.rf-meal-filters button{min-height:36px;padding:7px 11px;font-size:.78rem}}
+.rf-meal-filters,.rf-extra-filters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px auto 4px;max-width:620px;padding:0 12px;position:relative;z-index:5}
+.rf-meal-filters button,.rf-extra-filters button{min-height:36px;padding:7px 12px;border-radius:999px;border:1.5px solid rgba(0,0,0,.1);background:#fff;color:#3d2e28;font-size:.8rem;font-weight:700;cursor:pointer}
+.rf-meal-filters button.is-active,.rf-extra-filters button.is-active{border-color:#ff6b1a;background:linear-gradient(135deg,#fff7ed,#ffedd5);color:#c2410c}
+.rf-meal-filters-hint{text-align:center;font-size:.78rem;color:#7a6358;margin:0 0 10px}
+.rf-extra-filters{margin-top:4px}
 </style>`;
 
 const FILTER_UI = `
@@ -37,119 +75,142 @@ const FILTER_UI = `
   <button type="button" data-meal="Merienda">Merienda</button>
   <button type="button" data-meal="Cena">Cena</button>
 </div>
-<p class="rf-meal-filters-hint" id="rfMealFiltersHint">Elige el momento y gira la ruleta</p>`;
+<div class="rf-extra-filters" id="rfExtraFilters" role="group" aria-label="Preferencias">
+  <button type="button" data-tag="barato">Barato</button>
+  <button type="button" data-tag="vegano">Vegano</button>
+  <button type="button" data-tag="sin-gluten">Sin gluten</button>
+  <button type="button" data-tag="para-llevar">Para llevar</button>
+</div>
+<p class="rf-meal-filters-hint" id="rfMealFiltersHint">Elige momento y preferencias, luego gira</p>`;
 
 const FILTER_JS = `<script id="rf-meal-filters-js">
 (function(){
-  function ready(fn){
-    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn);
-    else fn();
+  var state = { meal: 'Todos', tags: {} };
+  function ready(fn){ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fn); else fn(); }
+  function allDishes(){
+    var banks = window.__RF_DISH_BANKS || {};
+    var base = (window.__RF_DISHES_ALL && window.__RF_DISHES_ALL.length) ? window.__RF_DISHES_ALL.slice() : [];
+    var out = base.slice();
+    Object.keys(banks).forEach(function(k){
+      (banks[k]||[]).forEach(function(d){
+        if(!out.some(function(x){ return x.name===d.name && x.meal===d.meal; })) out.push(d);
+      });
+    });
+    return out;
   }
-  function normalizeMeal(m){
-    m = String(m||'').toLowerCase();
+  function normMeal(m){
+    m=String(m||'').toLowerCase();
     if(m.indexOf('desay')>=0) return 'Desayuno';
-    if(m.indexOf('almuerz')>=0 || m==='comida') return 'Comida';
+    if(m.indexOf('almuerz')>=0||m==='comida') return 'Comida';
     if(m.indexOf('meriend')>=0) return 'Merienda';
     if(m.indexOf('cena')>=0) return 'Cena';
     return m;
   }
-  function getAllDishes(){
-    var base = (window.__RF_DISHES_ALL && window.__RF_DISHES_ALL.length) ? window.__RF_DISHES_ALL.slice() : [];
-    var mer = window.__RF_MERENDA || [];
-    var hasMer = base.some(function(d){ return normalizeMeal(d.meal)==='Merienda'; });
-    return hasMer ? base : base.concat(mer);
-  }
-  function filterDishes(key){
-    var all = getAllDishes();
-    if(!all.length) return all;
-    if(!key || key==='Todos') return all.slice();
-    var out = all.filter(function(d){ return normalizeMeal(d.meal)===key; });
-    if(out.length < 6){
-      var extra = all.filter(function(d){ return normalizeMeal(d.meal)!==key; });
-      out = out.concat(extra.slice(0, Math.max(0, 8-out.length)));
+  function filterList(){
+    var list = allDishes();
+    if(state.meal && state.meal!=='Todos'){
+      var bank = (window.__RF_DISH_BANKS && window.__RF_DISH_BANKS[state.meal]) || [];
+      list = bank.length ? bank.slice() : list.filter(function(d){ return normMeal(d.meal)===state.meal; });
     }
-    return out.length ? out : all.slice();
+    Object.keys(state.tags).forEach(function(tag){
+      if(!state.tags[tag]) return;
+      list = list.filter(function(d){
+        var t = d.tags || [];
+        if(tag==='barato') return (d.budget==='€') || t.indexOf('barato')>=0;
+        if(tag==='vegano') return t.indexOf('vegano')>=0;
+        if(tag==='sin-gluten') return t.indexOf('sin-gluten')>=0 || t.indexOf('sin-gluten-opcional')>=0;
+        if(tag==='para-llevar') return t.indexOf('para-llevar')>=0 || t.indexOf('domicilio')>=0;
+        return true;
+      });
+    });
+    if(list.length < 4){
+      var fallback = allDishes();
+      if(state.meal && state.meal!=='Todos') fallback = fallback.filter(function(d){ return normMeal(d.meal)===state.meal; });
+      list = fallback.length ? fallback : allDishes();
+    }
+    return list;
   }
-  function applyFilter(key){
+  function apply(){
     var r = window.__rfRoulette;
     if(!r) return;
-    var list = filterDishes(key);
-    if(!list.length) return;
+    var list = filterList();
     r.dishes = list;
     if(typeof r.draw==='function') r.draw();
     var hint = document.getElementById('rfMealFiltersHint');
-    if(hint){
-      hint.textContent = key==='Todos'
-        ? 'Todas las ideas · Gira cuando quieras'
-        : 'Modo ' + key + ' · ' + list.length + ' opciones';
-    }
+    if(hint) hint.textContent = list.length + ' opciones · Gira cuando quieras';
     var result = document.getElementById('result');
     if(result) result.classList.add('hidden');
   }
-  function wireUI(){
+  function wire(){
     var box = document.getElementById('rfMealFilters');
-    if(!box) return;
-    box.addEventListener('click', function(e){
+    var extra = document.getElementById('rfExtraFilters');
+    if(box) box.addEventListener('click', function(e){
       var btn = e.target.closest('button[data-meal]');
       if(!btn) return;
       box.querySelectorAll('button').forEach(function(b){ b.classList.remove('is-active'); });
       btn.classList.add('is-active');
-      applyFilter(btn.getAttribute('data-meal'));
+      state.meal = btn.getAttribute('data-meal');
+      apply();
+    });
+    if(extra) extra.addEventListener('click', function(e){
+      var btn = e.target.closest('button[data-tag]');
+      if(!btn) return;
+      var tag = btn.getAttribute('data-tag');
+      state.tags[tag] = !state.tags[tag];
+      btn.classList.toggle('is-active', !!state.tags[tag]);
+      apply();
     });
   }
-  function waitRoulette(tries){
-    tries = tries || 0;
-    if(window.__rfRoulette && window.__RF_DISHES_ALL && window.__RF_DISHES_ALL.length){
-      wireUI();
+  function wait(n){
+    n=n||0;
+    if(window.__rfRoulette){
+      if(!window.__RF_DISHES_ALL || !window.__RF_DISHES_ALL.length){
+        try { window.__RF_DISHES_ALL = window.__rfRoulette.dishes.slice(); } catch(e){}
+      }
+      wire();
       try{
         var q = new URLSearchParams(location.search).get('meal');
         if(q){
-          var map = {desayuno:'Desayuno',comida:'Comida',almuerzo:'Comida',merienda:'Merienda',cena:'Cena'};
-          var key = map[String(q).toLowerCase()] || q;
-          var btn = document.querySelector('#rfMealFilters button[data-meal="'+key+'"]');
+          var map={desayuno:'Desayuno',comida:'Comida',almuerzo:'Comida',merienda:'Merienda',cena:'Cena'};
+          var key=map[String(q).toLowerCase()]||q;
+          var btn=document.querySelector('#rfMealFilters button[data-meal="'+key+'"]');
           if(btn) btn.click();
         }
       }catch(e){}
       return;
     }
-    if(tries < 50) setTimeout(function(){ waitRoulette(tries+1); }, 120);
+    if(n<50) setTimeout(function(){ wait(n+1); }, 120);
   }
-  ready(function(){ waitRoulette(0); });
+  ready(function(){ wait(0); });
 })();
 </script>`;
 
 function run() {
   if (!fs.existsSync(INDEX)) {
-    console.warn('[home-meal-filters] index.html no encontrado');
+    console.warn('[home-meal-filters] sin index');
     return false;
   }
-
   let html = fs.readFileSync(INDEX, 'utf8');
 
-  // --- REPAIR: deshacer el bug de paréntesis sin cerrar ---
-  // var DISHES = (window.__RF_DISHES_ALL = [  ...  ];  →  var DISHES = [ ... ];
-  html = html.replace(
-    /var DISHES = \(window\.__RF_DISHES_ALL = \[/g,
-    'var DISHES = ['
-  );
-  // Si quedó un ]); mal puesto, normalizar cierre del array DISHES
-  // No tocamos otros arrays.
-
-  // Limpiar hooks duplicados previos
+  html = html.replace(/var DISHES = \(window\.__RF_DISHES_ALL = \[/g, 'var DISHES = [');
   html = html.replace(/\n\s*window\.__RF_DISHES_ALL = DISHES\.slice\(\);\n?/g, '\n');
   html = html.replace(/\n\s*window\.__RF_DISHES_ALL = window\.__RF_DISHES_ALL \|\| DISHES\.slice\(\);\n?/g, '\n');
   html = html.replace(/\n\s*window\.__rfRoulette = roulette;\n?/g, '\n');
   html = html.replace(/window\.__RF_MERENDA = \[[\s\S]*?\];\n?/g, '');
+  html = html.replace(/window\.__RF_DISH_BANKS = \{[\s\S]*?\};\n?/g, '');
 
-  // Hook limpio tras el array DISHES (sin romper sintaxis)
   if (!html.includes('window.__RF_DISHES_ALL = DISHES.slice()')) {
     html = html.replace(
       /(var DISHES = \[[\s\S]*?\];)/,
-      '$1\n  window.__RF_DISHES_ALL = DISHES.slice();\n  ' + MERENDA_DISHES
+      '$1\n  window.__RF_DISHES_ALL = DISHES.slice();\n  ' + DISH_BANKS
+    );
+  } else if (!html.includes('window.__RF_DISH_BANKS')) {
+    html = html.replace(
+      /window\.__RF_DISHES_ALL = DISHES\.slice\(\);/,
+      'window.__RF_DISHES_ALL = DISHES.slice();\n  ' + DISH_BANKS
     );
   }
 
-  // Exponer instancia de la ruleta
   if (!html.includes('window.__rfRoulette = roulette')) {
     html = html.replace(
       /var roulette = new Roulette\(canvas, DISHES\);/,
@@ -157,38 +218,21 @@ function run() {
     );
   }
 
-  // CSS
   html = html.replace(/<style id="rf-meal-filters-css">[\s\S]*?<\/style>/i, '');
-  if (/<\/head>/i.test(html)) {
-    html = html.replace(/<\/head>/i, FILTER_CSS + '</head>');
-  }
+  html = html.replace(/<\/head>/i, FILTER_CSS + '</head>');
 
-  // UI: quitar duplicados y colocar ANTES del botón girar (no dentro del canvas)
-  html = html.replace(/<div class="rf-meal-filters"[\s\S]*?<\/div>\s*<p class="rf-meal-filters-hint"[\s\S]*?<\/p>/gi, '');
-
+  html = html.replace(/<div class="rf-meal-filters"[\s\S]*?<p class="rf-meal-filters-hint"[\s\S]*?<\/p>/gi, '');
   if (!html.includes('id="rfMealFilters"')) {
-    // Preferir insertar justo antes de spinBtn
     if (/id=["']spinBtn["']/.test(html)) {
       html = html.replace(/(<[^>]*id=["']spinBtn["'][^>]*>)/i, FILTER_UI + '\n$1');
-    } else if (/id=["']ruleta["']/.test(html)) {
-      // al final del bloque ruleta es más seguro que al inicio (evita overlay en canvas)
-      html = html.replace(/(id=["']ruleta["'][\s\S]{0,2500}?)(<button[^>]*id=["']spinBtn["'])/i, '$1' + FILTER_UI + '\n$2');
     }
   }
 
-  // JS
   html = html.replace(/<script id="rf-meal-filters-js">[\s\S]*?<\/script>/i, '');
-  if (/<\/body>/i.test(html)) {
-    html = html.replace(/<\/body>/i, FILTER_JS + '</body>');
-  }
-
-  // Verificación mínima de sintaxis DISHES
-  if (/var DISHES = \(window\.__RF_DISHES_ALL/.test(html)) {
-    console.warn('[home-meal-filters] AÚN hay asignación rota de DISHES');
-  }
+  html = html.replace(/<\/body>/i, FILTER_JS + '</body>');
 
   fs.writeFileSync(INDEX, html, 'utf8');
-  console.log('[home-meal-filters] Ruleta restaurada + filtros OK');
+  console.log('[home-meal-filters] bancos + filtros momento/dieta/precio OK');
   return true;
 }
 
