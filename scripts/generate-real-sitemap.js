@@ -2,7 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 const DIST = path.join(process.cwd(), 'dist');
-const SITE = 'https://ruletadecomida.es';
+// Use the site's actual canonical host so Google receives 200 OK sitemap URLs,
+// instead of sitemap children that redirect between bare and www hosts.
+const SITE = 'https://www.ruletadecomida.es';
 const MAX_URLS_PER_SITEMAP = 45000;
 
 function walk(dir, out) {
@@ -35,13 +37,11 @@ function run() {
   walk(DIST, htmlFiles);
   const urls = [...new Set(htmlFiles.map(toUrl))].sort();
 
-  // Google recommends splitting large sitemaps; keep every child safely below 50,000 URLs.
   const chunks = [];
   for (let i = 0; i < urls.length; i += MAX_URLS_PER_SITEMAP) {
     chunks.push(urls.slice(i, i + MAX_URLS_PER_SITEMAP));
   }
 
-  // Remove stale generated sitemap children before writing the current set.
   for (const name of fs.readdirSync(DIST)) {
     if (/^sitemap-\d+\.xml$/i.test(name)) fs.rmSync(path.join(DIST, name), { force: true });
   }
