@@ -12,7 +12,7 @@ zip.extractAllTo(outputDir,true);addFooterPolish(outputDir);
 for(const script of ['seo-postprocess.js','ultra-design.js','fix-chips.js','home-faq-seo.js','generate-meal-layers.js','home-meal-filters.js']){try{require('./scripts/'+script).run()}catch(e){console.warn('[static-build] '+script+':',e.message)}}
 try{require('./scripts/final-guide.js').run()}catch(e){console.warn('[static-build] final-guide:',e.message)}
 try{require('./scripts/fix-guide-layout.js').run()}catch(e){console.warn('[static-build] fix-guide-layout:',e.message)}
-// Corrección FINAL: impedir que el contenido se vea dentro del panel sticky superior al hacer scroll.
 try{require('./scripts/fix-header-overlap.js').run()}catch(e){console.warn('[static-build] fix-header-overlap:',e.message)}
+try{require('./scripts/final-guide-cleanup.js').run()}catch(e){console.warn('[static-build] final-guide-cleanup:',e.message)}
 for(const required of ['index.html','sitemap.xml','robots.txt']){if(!fs.existsSync(path.join(outputDir,required)))throw new Error(`El ZIP no contiene el archivo obligatorio: ${required}`)}
-console.log('Build OK: flujo único Momento -> Comida -> Ciudad + header sin solapamiento.');
+console.log('Build OK: flujo único Momento -> Comida -> Ciudad + header sin solapamiento + títulos legacy eliminados.');
