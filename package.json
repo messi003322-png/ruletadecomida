@@ -4,7 +4,7 @@
   "description": "Ruleta de Comida — sitio estático publicado desde el ZIP proporcionado",
   "version": "2026.08.24",
   "scripts": {
-    "build": "node static-build.js && node scripts/fix-roulette-guide-link.js && node scripts/generate-meal-layers.js && node scripts/ensure-guide-routes.js && node scripts/repair-all-food-routes.js && node scripts/food-page-wording.js && node scripts/food-category-guides.js && node scripts/unique-food-guides.js && node scripts/cleanup-non-food-guides.js && node scripts/unique-topic-guides.js && node scripts/fix-almuerzo-wording.js && node scripts/verify-guide-routes.js"
+    "build": "node static-build.js && node scripts/fix-roulette-guide-link.js && node scripts/generate-meal-layers.js && node scripts/ensure-guide-routes.js && node scripts/repair-all-food-routes.js && node scripts/food-page-wording.js && node scripts/food-category-guides.js && node scripts/unique-food-guides.js && node scripts/cleanup-non-food-guides.js && node scripts/unique-topic-guides.js && node scripts/fix-almuerzo-wording.js && node scripts/verify-guide-routes.js && node scripts/verify-content-uniqueness.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.16"
