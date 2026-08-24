@@ -11,20 +11,26 @@ const STYLE=`<style id="rf-guide-layout-fix">
 </style>`;
 const SCRIPT=`<script id="rf-guide-layout-fix-js">(function(){
 function ready(fn){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fn);else fn()}
-function title(n,t){var h=document.createElement('div');h.className='rf-flow-title';h.innerHTML='<span class="rf-flow-number">'+n+'</span><span>'+t+'</span>';return h}
+function title(n,t){var h=document.createElement('div');h.className='rf-flow-title';h.dataset.rfCanonical='1';h.innerHTML='<span class="rf-flow-number">'+n+'</span><span>'+t+'</span>';return h}
 function isStepText(el){var t=(el.textContent||'').replace(/\s+/g,' ').trim();return /^(?:\d+\s*)?(?:Momento del día|Comida|Ciudad)$/i.test(t)}
-function init(){
- var root=document.getElementById('directorio'),moment=document.getElementById('rf-final-moment'),meal=document.getElementById('rf-final-meal'),city=document.getElementById('rf-final-city');
- if(!root||!moment||!meal||!city)return;
- Array.prototype.forEach.call(root.querySelectorAll('.rf-flow-title'),function(el){el.remove()});
+function clean(root){
+ Array.prototype.forEach.call(root.querySelectorAll('.rf-flow-title:not([data-rf-canonical="1"])'),function(el){el.remove()});
  Array.prototype.forEach.call(root.querySelectorAll('h1,h2,h3,h4,h5,h6,p,div'),function(el){
+   if(el.dataset&&el.dataset.rfCanonical==='1')return;
    if(el.closest('#rf-final-moment,#rf-final-meal,#rf-final-city'))return;
    if(isStepText(el)){el.setAttribute('data-rf-hidden-duplicate','1');el.style.display='none'}
  });
- function add(box,n,text){box.parentNode.insertBefore(title(n,text),box)}
- add(moment,1,'Momento del día');add(meal,2,'Comida');add(city,3,'Ciudad');
 }
-ready(function(){init();setTimeout(init,50);setTimeout(init,250);setTimeout(init,800)})
+function ensure(root,box,n,text){var existing=root.querySelector('.rf-flow-title[data-rf-step="'+n+'"]');if(existing)return;var h=title(n,text);h.dataset.rfStep=String(n);box.parentNode.insertBefore(h,box)}
+function init(){
+ var root=document.getElementById('directorio'),moment=document.getElementById('rf-final-moment'),meal=document.getElementById('rf-final-meal'),city=document.getElementById('rf-final-city');
+ if(!root||!moment||!meal||!city)return false;
+ clean(root);ensure(root,moment,1,'Momento del día');ensure(root,meal,2,'Comida');ensure(root,city,3,'Ciudad');return true;
+}
+ready(function(){
+ var tries=0;function run(){if(init()||tries++>20)return;setTimeout(run,100)}run();
+ var root=document.getElementById('directorio');if(root){var observer=new MutationObserver(function(){init()});observer.observe(root,{childList:true,subtree:true})}
+});
 })();</script>`;
 function run(){if(!fs.existsSync(INDEX))return false;let html=fs.readFileSync(INDEX,'utf8');html=html.replace(/<style id="rf-guide-layout-fix">[\s\S]*?<\/style>/i,'');html=html.replace(/<script id="rf-guide-layout-fix-js">[\s\S]*?<\/script>/i,'');html=html.replace(/<\/head>/i,STYLE+'</head>');html=html.replace(/<\/body>/i,SCRIPT+'</body>');fs.writeFileSync(INDEX,html,'utf8');return true}
 if(require.main===module)run();module.exports={run};
