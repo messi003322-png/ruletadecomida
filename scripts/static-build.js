@@ -16,8 +16,10 @@ try{require('./scripts/fix-chips.js').run()}catch(e){console.warn('[static-build
 try{require('./scripts/home-faq-seo.js').run()}catch(e){console.warn('[static-build] home-faq:',e.message)}
 try{require('./scripts/generate-meal-layers.js').run()}catch(e){console.warn('[static-build] meal-layers:',e.message)}
 try{require('./scripts/home-meal-filters.js').run()}catch(e){console.warn('[static-build] meal-filters:',e.message)}
-// The Moment block must exist before home-guide-moment wires its click handlers.
+// Insert Momento before wiring the guide events.
 try{require('./scripts/restore-guide-moment.js').run()}catch(e){console.warn('[static-build] restore-moment:',e.message)}
 try{require('./scripts/home-guide-moment.js').run()}catch(e){console.warn('[static-build] guide-moment:',e.message)}
+// Prevent the guide from repeatedly re-rendering itself through a MutationObserver.
+try{require('./scripts/disable-guide-observer.js').run()}catch(e){console.warn('[static-build] guide-observer:',e.message)}
 for(const required of ['index.html','sitemap.xml','robots.txt']){if(!fs.existsSync(path.join(outputDir,required)))throw new Error(`El ZIP no contiene el archivo obligatorio: ${required}`)}
 console.log('Sitio construido: filtros + guía Momento → Comida → Ciudad.');
