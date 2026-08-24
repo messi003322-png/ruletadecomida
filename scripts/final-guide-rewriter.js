@@ -5,18 +5,18 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function norm(s){return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
 function hash(s){let h=2166136261;for(const c of s)h=((h^c.charCodeAt(0))*16777619)>>>0;return h>>>0}
 const LIB=[
- ['Qué debería destacar','Empieza por identificar qué debería destacar en '+`__FOOD__`+': el ingrediente principal, la técnica, la textura o una combinación concreta. Busca establecimientos que expliquen claramente su especialidad.'],
- ['La carta da pistas','Revisa cómo aparece '+`__FOOD__`+' en la carta. Descripciones concretas de ingredientes, preparación y acompañamientos permiten comparar mejor que una foto o un nombre llamativo.'],
- ['Opiniones que sirven','Para valorar '+`__FOOD__`+', busca reseñas que cuenten qué pidió la persona y cómo encontró el sabor, la textura, la cantidad y el servicio.'],
- ['Piensa en tu plan','No existe un único sitio perfecto para '+`__FOOD__`+'. Decide primero si quieres una versión ligera, abundante, tradicional, creativa, para llevar o para comer tranquilamente.'],
- ['Precio con sentido','Compara el coste de '+`__FOOD__`+' con la ración, los ingredientes, los acompañamientos y la elaboración. El precio aislado dice poco.'],
- ['La preparación importa','Dos locales pueden ofrecer '+`__FOOD__`+' de formas muy diferentes. Temperatura, punto de cocción, tiempos y tratamiento de los ingredientes cambian el resultado.'],
- ['Especialidad frente a variedad','Si un establecimiento destaca especialmente '+`__FOOD__`, comprueba qué versión ofrece y qué la diferencia. Una especialidad bien trabajada puede valer más que una carta enorme.'],
- ['Los pequeños detalles','Con '+`__FOOD__`+', detalles como la proporción de ingredientes, el tamaño, los acompañamientos o la forma de servir pueden cambiar bastante la experiencia.'],
- ['Tradicional o diferente','Antes de elegir '+`__FOOD__`+', decide si quieres una interpretación clásica o una propuesta más moderna. Esa preferencia reduce mucho la búsqueda.'],
- ['Hazlo práctico','Si vas a comer '+`__FOOD__`+' y tienes poco tiempo, prioriza distancia, horario y comentarios sobre la rapidez. Si tienes margen, puedes valorar locales más especializados.'],
- ['Compara dos opciones','Elige dos lugares que preparen '+`__FOOD__`+' y compara ingredientes, estilo, precio, ubicación y opiniones recientes. Dos alternativas bien escogidas suelen ser suficientes.'],
- ['El acompañamiento cuenta','Guarniciones, salsas, bebidas y postres pueden cambiar tanto el sabor como el precio final de '+`__FOOD__`+'. Comprueba qué incluye realmente el pedido.']
+ ['Qué debería destacar','Empieza por identificar qué debería destacar en __FOOD__: el ingrediente principal, la técnica, la textura o una combinación concreta. Busca establecimientos que expliquen claramente su especialidad.'],
+ ['La carta da pistas','Revisa cómo aparece __FOOD__ en la carta. Descripciones concretas de ingredientes, preparación y acompañamientos permiten comparar mejor que una foto o un nombre llamativo.'],
+ ['Opiniones que sirven','Para valorar __FOOD__, busca reseñas que cuenten qué pidió la persona y cómo encontró el sabor, la textura, la cantidad y el servicio.'],
+ ['Piensa en tu plan','No existe un único sitio perfecto para __FOOD__. Decide primero si quieres una versión ligera, abundante, tradicional, creativa, para llevar o para comer tranquilamente.'],
+ ['Precio con sentido','Compara el coste de __FOOD__ con la ración, los ingredientes, los acompañamientos y la elaboración. El precio aislado dice poco.'],
+ ['La preparación importa','Dos locales pueden ofrecer __FOOD__ de formas muy diferentes. Temperatura, punto de cocción, tiempos y tratamiento de los ingredientes cambian el resultado.'],
+ ['Especialidad frente a variedad','Si un establecimiento destaca especialmente por __FOOD__, comprueba qué versión ofrece y qué la diferencia. Una especialidad bien trabajada puede valer más que una carta enorme.'],
+ ['Los pequeños detalles','Con __FOOD__, detalles como la proporción de ingredientes, el tamaño, los acompañamientos o la forma de servir pueden cambiar bastante la experiencia.'],
+ ['Tradicional o diferente','Antes de elegir __FOOD__, decide si quieres una interpretación clásica o una propuesta más moderna. Esa preferencia reduce mucho la búsqueda.'],
+ ['Hazlo práctico','Si vas a comer __FOOD__ y tienes poco tiempo, prioriza distancia, horario y comentarios sobre la rapidez. Si tienes margen, puedes valorar locales más especializados.'],
+ ['Compara dos opciones','Elige dos lugares que preparen __FOOD__ y compara ingredientes, estilo, precio, ubicación y opiniones recientes. Dos alternativas bien escogidas suelen ser suficientes.'],
+ ['El acompañamiento cuenta','Guarniciones, salsas, bebidas y postres pueden cambiar tanto el sabor como el precio final de __FOOD__. Comprueba qué incluye realmente el pedido.']
 ];
 const LOCAL=[
  c=>`En ${c}, además de la valoración general, merece la pena revisar comentarios recientes de personas que hayan pedido el plato concreto y comprobar si sigue disponible en la carta.`,
