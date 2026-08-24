@@ -14,5 +14,6 @@ try{require('./scripts/final-guide.js').run()}catch(e){console.warn('[static-bui
 try{require('./scripts/fix-guide-layout.js').run()}catch(e){console.warn('[static-build] fix-guide-layout:',e.message)}
 try{require('./scripts/fix-header-overlap.js').run()}catch(e){console.warn('[static-build] fix-header-overlap:',e.message)}
 try{require('./scripts/final-guide-cleanup.js').run()}catch(e){console.warn('[static-build] final-guide-cleanup:',e.message)}
+try{require('./scripts/fix-home-selector.js').run()}catch(e){console.warn('[static-build] fix-home-selector:',e.message)}
 for(const required of ['index.html','sitemap.xml','robots.txt']){if(!fs.existsSync(path.join(outputDir,required)))throw new Error(`El ZIP no contiene el archivo obligatorio: ${required}`)}
-console.log('Build OK: flujo único Momento -> Comida -> Ciudad + header sin solapamiento + títulos legacy eliminados.');
+console.log('Build OK: selector separado Momento -> Comida -> Ciudad + header sin solapamiento + títulos legacy eliminados.');
