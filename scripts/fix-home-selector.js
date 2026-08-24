@@ -1,11 +1,11 @@
 /**
- * Selector de guía en 3 pasos:
- * 1) Momento → 2) 20 comidas de ese momento → 3) Ciudad (con buscador)
- * Ver guía → /{ciudad}/{momento}/{comida}/
+ * Selector 1 Momento → 2 Comida → 3 Ciudad
+ * Las comidas se leen del DIST (rutas reales) → NUNCA genera 404.
  */
 const fs = require('fs');
 const path = require('path');
-const INDEX = path.join(__dirname, '..', 'dist', 'index.html');
+const DIST = path.join(__dirname, '..', 'dist');
+const INDEX = path.join(DIST, 'index.html');
 
 const MOMENTS = [
   ['desayuno', 'Desayuno'],
@@ -14,66 +14,60 @@ const MOMENTS = [
   ['cena', 'Cena']
 ];
 
-const FOODS_BY_MOMENT = {
-  desayuno: [
-    'Tostadas con tomate','Huevos revueltos','Yogur con fruta','Avena con frutos secos','Café con bollería',
-    'Churros o porras','Tostada de aguacate','Zumo y tostada integral','Tortilla francesa','Bowl de fruta',
-    'Porridge de avena','Croissant','Bocadillo de jamón','Pan con aceite','Smoothie verde',
-    'Crepes dulces','Queso fresco con miel','Cereal con leche','Tostada integral','Café solo'
-  ],
-  almuerzo: [
-    'Menú del día casero','Ensalada completa','Pasta al pesto','Bocadillo contundente','Arroz con verduras',
-    'Tortilla de patatas','Pollo a la plancha','Lentejas express','Wrap de pollo','Gazpacho',
-    'Paella de verduras','Macarrones con tomate','Arroz con pollo','Garbanzos con espinacas','Filete con ensalada',
-    'Pasta boloñesa','Crema de verduras','Burrito de pollo','Ensalada de pasta','Croquetas con ensalada'
-  ],
-  merienda: [
-    'Yogur con fruta','Tostada con mermelada','Café y galleta','Batido de plátano','Frutos secos',
-    'Chocolate a la taza','Sándwich vegetal','Zumo y magdalena','Pieza de fruta','Bizcocho casero',
-    'Tostada con aceite','Helado','Churros','Galletas con leche','Batido de cacao',
-    'Hummus con pan','Queso y pan','Smoothie de frutos rojos','Barrita de cereales','Café con leche'
-  ],
-  cena: [
-    'Pasta cremosa','Tacos de pollo','Ramen de miso','Tortilla de patatas','Salmón a la plancha',
-    'Pizza de sartén','Arroz frito','Quesadillas','Ensalada de garbanzos','Crema de calabaza',
-    'Hamburguesa casera','Noodles salteados','Wrap de pollo','Sopa de tomate','Pollo al ajillo',
-    'Tortilla francesa','Ensalada César','Pasta al pesto','Pescado a la plancha','Revuelto de verduras'
-  ]
-};
+function pretty(slug) {
+  return String(slug)
+    .split('-')
+    .filter(Boolean)
+    .map((x) => (x[0] ? x[0].toUpperCase() + x.slice(1) : x))
+    .join(' ');
+}
 
-const CITIES = [
-  ['madrid','Madrid'],['barcelona','Barcelona'],['valencia','Valencia'],['sevilla','Sevilla'],['zaragoza','Zaragoza'],
-  ['malaga','Málaga'],['murcia','Murcia'],['palma','Palma'],['las-palmas','Las Palmas'],['bilbao','Bilbao'],
-  ['alicante','Alicante'],['cordoba','Córdoba'],['valladolid','Valladolid'],['vigo','Vigo'],['gijon','Gijón'],
-  ['hospitalet','Hospitalet'],['vitoria','Vitoria'],['coruna','A Coruña'],['elche','Elche'],['granada','Granada'],
-  ['terrassa','Terrassa'],['badalona','Badalona'],['oviedo','Oviedo'],['sabadell','Sabadell'],['cartagena','Cartagena'],
-  ['jerez','Jerez'],['mostoles','Móstoles'],['alcala-de-henares','Alcalá de Henares'],['fuenlabrada','Fuenlabrada'],
-  ['leganes','Leganés'],['getafe','Getafe'],['alcorcon','Alcorcón'],['burgos','Burgos'],['santander','Santander'],
-  ['logrono','Logroño'],['badajoz','Badajoz'],['huelva','Huelva'],['salamanca','Salamanca'],['marbella','Marbella'],
-  ['lleida','Lleida'],['dos-hermanas','Dos Hermanas'],['tarragona','Tarragona'],['torrejon-de-ardoz','Torrejón de Ardoz'],
-  ['parla','Parla'],['mataro','Mataró'],['algeciras','Algeciras'],['santa-coloma','Santa Coloma'],['cadiz','Cádiz'],
-  ['alcobendas','Alcobendas'],['ourense','Ourense'],['reus','Reus'],['telde','Telde'],['barakaldo','Barakaldo'],
-  ['girona','Girona'],['roquetas-de-mar','Roquetas de Mar'],['santiago-de-compostela','Santiago de Compostela'],
-  ['caceres','Cáceres'],['lorca','Lorca'],['coslada','Coslada'],['las-rozas','Las Rozas'],['san-fernando','San Fernando'],
-  ['el-puerto-de-santa-maria','El Puerto de Santa María'],['san-sebastian-de-los-reyes','San Sebastián de los Reyes'],
-  ['cornellat','Cornellà'],['melilla','Melilla'],['ceuta','Ceuta'],['pozo-alcon','Pozo Alcón'],['elgoibar','Elgoibar'],
-  ['alza','Alza'],['las-arte','Las Arte'],['vinaros','Vinaròs'],['torrelavega','Torrelavega'],
-  ['rivas-vaciamadrid','Rivas-Vaciamadrid'],['chiclana','Chiclana'],['torrent','Torrent'],['getxo','Getxo'],
-  ['velez-malaga','Vélez-Málaga'],['gandia','Gandía'],['aviles','Avilés']
-];
-
-const slug = (s) =>
-  String(s)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-
-const esc = (s) =>
-  String(s).replace(/[&<>"']/g, (c) =>
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
   );
+}
+
+/** Descubre ciudades y comidas REALES generadas en dist */
+function discoverFromDist() {
+  const skip = new Set(['assets', 'css', 'js', 'images']);
+  const cities = [];
+  const foodsByMoment = {
+    desayuno: new Set(),
+    almuerzo: new Set(),
+    merienda: new Set(),
+    cena: new Set()
+  };
+
+  if (!fs.existsSync(DIST)) return { cities: [], foodsByMoment: {} };
+
+  for (const e of fs.readdirSync(DIST, { withFileTypes: true })) {
+    if (!e.isDirectory() || e.name.startsWith('.') || skip.has(e.name)) continue;
+    const cityDir = path.join(DIST, e.name);
+    let hasAny = false;
+
+    for (const [m] of MOMENTS) {
+      const mDir = path.join(cityDir, m);
+      if (!fs.existsSync(mDir)) continue;
+      for (const f of fs.readdirSync(mDir, { withFileTypes: true })) {
+        if (!f.isDirectory()) continue;
+        if (fs.existsSync(path.join(mDir, f.name, 'index.html'))) {
+          foodsByMoment[m].add(f.name);
+          hasAny = true;
+        }
+      }
+    }
+    if (hasAny) cities.push([e.name, pretty(e.name)]);
+  }
+
+  cities.sort((a, b) => a[1].localeCompare(b[1], 'es'));
+
+  const out = {};
+  for (const [m] of MOMENTS) {
+    out[m] = [...foodsByMoment[m]].sort();
+  }
+  return { cities, foodsByMoment: out };
+}
 
 const CSS = `<style id="rf-separated-guide-selector">
 .rf-guide-picker{max-width:1180px;margin:28px auto 0;padding:0 16px 24px}
@@ -92,28 +86,28 @@ const CSS = `<style id="rf-separated-guide-selector">
 @media(max-width:600px){.rf-guide-step{padding:16px;border-radius:18px}.rf-guide-option{font-size:13px;padding:9px 11px}.rf-guide-options{max-height:220px}}
 </style>`;
 
-function buildUI() {
+function buildUI(cities, foodsByMoment) {
   const momentButtons = MOMENTS.map(
     ([slugValue, name]) =>
       `<button class="rf-guide-option" type="button" data-guide-moment="${slugValue}">${name}</button>`
   ).join('');
 
-  // todos los platos de todos los momentos; el JS filtra por data-moment
-  const foodButtons = Object.entries(FOODS_BY_MOMENT)
-    .map(([moment, foods]) =>
-      foods
-        .map((name) => {
-          const s = slug(name);
-          return `<button class="rf-guide-option" type="button" hidden data-guide-food="${s}" data-guide-food-moment="${moment}" data-guide-food-label="${esc(name)}">${esc(name)}</button>`;
-        })
-        .join('')
+  const foodButtons = MOMENTS.map(([moment]) => {
+    const foods = foodsByMoment[moment] || [];
+    return foods
+      .map((slug) => {
+        const label = pretty(slug);
+        return `<button class="rf-guide-option" type="button" hidden data-guide-food="${esc(slug)}" data-guide-food-moment="${moment}" data-guide-food-label="${esc(label)}">${esc(label)}</button>`;
+      })
+      .join('');
+  }).join('');
+
+  const cityButtons = cities
+    .map(
+      ([slugValue, name]) =>
+        `<button class="rf-guide-option" type="button" data-guide-city="${esc(slugValue)}">${esc(name)}</button>`
     )
     .join('');
-
-  const cityButtons = CITIES.map(
-    ([slugValue, name]) =>
-      `<button class="rf-guide-option" type="button" data-guide-city="${slugValue}">${esc(name)}</button>`
-  ).join('');
 
   return `<section class="rf-guide-picker" id="rfSeparatedGuidePicker" aria-label="Selector de guía">
   <div class="rf-guide-step" data-guide-step="moment">
@@ -121,7 +115,7 @@ function buildUI() {
     <div class="rf-guide-options">${momentButtons}</div>
   </div>
   <div class="rf-guide-step" data-guide-step="food" hidden>
-    <h3 class="rf-guide-step-title"><span class="rf-guide-step-number">2</span> Comida <span style="font-weight:500;color:#a8a29e;text-transform:none;font-size:.85rem">(20 platos del momento)</span></h3>
+    <h3 class="rf-guide-step-title"><span class="rf-guide-step-number">2</span> Comida <span style="font-weight:500;color:#a8a29e;text-transform:none;font-size:.85rem">(solo opciones con página real)</span></h3>
     <div class="rf-guide-options" id="rfGuideFoods">${foodButtons}</div>
   </div>
   <div class="rf-guide-step" data-guide-step="city" hidden>
@@ -136,33 +130,30 @@ function buildUI() {
 </section>`;
 }
 
-const SCRIPT = `<script id="rf-separated-guide-selector-js">
+function buildScript() {
+  return `<script id="rf-separated-guide-selector-js">
 (function(){
   function init(){
     if (document.getElementById('rfSeparatedGuidePicker')) return;
 
-    // Reemplazar el directorio antiguo si existe
-    var old =
-      document.getElementById('directorio') ||
-      document.getElementById('dir-comidas') && document.getElementById('dir-comidas').closest('section');
+    var old = document.getElementById('directorio');
+    if (!old) {
+      var dc = document.getElementById('dir-comidas') || document.getElementById('dir-platos');
+      if (dc) old = dc.closest('section');
+    }
 
     var host = old;
     if (!host) {
-      // Insertar antes del footer o al final del main
-      host = document.querySelector('footer, .rf-final-footer, #seo-map-ciudades');
-      if (host) host = host.parentElement || host;
+      var foot = document.querySelector('.rf-final-footer, footer, #seo-map-ciudades');
+      host = foot ? (foot.parentElement || foot) : document.body;
     }
 
-    var wrap = document.createElement('div');
-    wrap.innerHTML = ${JSON.stringify(buildUI())};
-    var picker = wrap.firstElementChild;
+    var picker = document.querySelector('#rfSeparatedGuidePicker');
+    if (!picker) return;
 
-    if (old) {
+    // Si el picker está al final del body (inyectado en build), moverlo al sitio del directorio
+    if (old && picker.parentNode !== old.parentNode) {
       old.replaceWith(picker);
-    } else if (host) {
-      host.appendChild(picker);
-    } else {
-      document.body.appendChild(picker);
     }
 
     var moment = null, food = null, city = null;
@@ -218,7 +209,6 @@ const SCRIPT = `<script id="rf-separated-guide-selector-js">
         foodStep.hidden = false;
         cityStep.hidden = true;
         update();
-        foodStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         return;
       }
 
@@ -234,7 +224,6 @@ const SCRIPT = `<script id="rf-separated-guide-selector-js">
         });
         cityStep.hidden = false;
         update();
-        cityStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         return;
       }
 
@@ -264,17 +253,31 @@ const SCRIPT = `<script id="rf-separated-guide-selector-js">
   else init();
 })();
 </script>`;
+}
 
 function run() {
-  if (!fs.existsSync(INDEX)) return false;
+  if (!fs.existsSync(INDEX)) {
+    console.warn('[fix-home-selector] sin index.html');
+    return false;
+  }
+
+  const { cities, foodsByMoment } = discoverFromDist();
+  const totalFoods = Object.values(foodsByMoment).reduce((n, a) => n + a.length, 0);
+
+  if (!cities.length || totalFoods === 0) {
+    console.warn('[fix-home-selector] dist sin guías aún; se omite (ejecutar al final del build)');
+    return false;
+  }
+
   let html = fs.readFileSync(INDEX, 'utf8');
 
-  // Quitar versiones previas rotas
   html = html.replace(/<style id="rf-separated-guide-selector">[\s\S]*?<\/style>/i, '');
   html = html.replace(/<script id="rf-separated-guide-selector-js">[\s\S]*?<\/script>/i, '');
   html = html.replace(/<section class="rf-guide-picker"[\s\S]*?<\/section>/i, '');
 
-  const injection = CSS + SCRIPT;
+  const ui = buildUI(cities, foodsByMoment);
+  const injection = CSS + ui + buildScript();
+
   if (/<\/body>/i.test(html)) {
     html = html.replace(/<\/body>/i, injection + '</body>');
   } else {
@@ -282,7 +285,10 @@ function run() {
   }
 
   fs.writeFileSync(INDEX, html, 'utf8');
-  console.log('[fix-home-selector] Selector 1 Momento → 2 Comida (20) → 3 Ciudad OK');
+  console.log(
+    `[fix-home-selector] OK: ${cities.length} ciudades, comidas reales: ` +
+      MOMENTS.map(([m]) => `${m}=${(foodsByMoment[m] || []).length}`).join(' ')
+  );
   return true;
 }
 
