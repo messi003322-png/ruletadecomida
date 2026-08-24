@@ -1,13 +1,15 @@
 /**
- * Selector 1 Momento → 2 Comida → 3 Ciudad
- * Las comidas se leen del DIST (rutas reales) → NUNCA genera 404.
+ * Selector UI: SOLO 4 momentos públicos (desayuno/almuerzo/merienda/cena).
+ * Los momentos SEO (brunch, media-manana, noche) existen en dist+sitemap
+ * pero NO se muestran aquí.
  */
 const fs = require('fs');
 const path = require('path');
 const DIST = path.join(__dirname, '..', 'dist');
 const INDEX = path.join(DIST, 'index.html');
 
-const MOMENTS = [
+/** Solo estos aparecen en la interfaz */
+const PUBLIC_MOMENTS = [
   ['desayuno', 'Desayuno'],
   ['almuerzo', 'Almuerzo'],
   ['merienda', 'Merienda'],
@@ -21,14 +23,12 @@ function pretty(slug) {
     .map((x) => (x[0] ? x[0].toUpperCase() + x.slice(1) : x))
     .join(' ');
 }
-
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
   );
 }
 
-/** Descubre ciudades y comidas REALES generadas en dist */
 function discoverFromDist() {
   const skip = new Set(['assets', 'css', 'js', 'images']);
   const cities = [];
@@ -46,7 +46,7 @@ function discoverFromDist() {
     const cityDir = path.join(DIST, e.name);
     let hasAny = false;
 
-    for (const [m] of MOMENTS) {
+    for (const [m] of PUBLIC_MOMENTS) {
       const mDir = path.join(cityDir, m);
       if (!fs.existsSync(mDir)) continue;
       for (const f of fs.readdirSync(mDir, { withFileTypes: true })) {
@@ -61,11 +61,8 @@ function discoverFromDist() {
   }
 
   cities.sort((a, b) => a[1].localeCompare(b[1], 'es'));
-
   const out = {};
-  for (const [m] of MOMENTS) {
-    out[m] = [...foodsByMoment[m]].sort();
-  }
+  for (const [m] of PUBLIC_MOMENTS) out[m] = [...foodsByMoment[m]].sort();
   return { cities, foodsByMoment: out };
 }
 
@@ -87,12 +84,12 @@ const CSS = `<style id="rf-separated-guide-selector">
 </style>`;
 
 function buildUI(cities, foodsByMoment) {
-  const momentButtons = MOMENTS.map(
+  const momentButtons = PUBLIC_MOMENTS.map(
     ([slugValue, name]) =>
       `<button class="rf-guide-option" type="button" data-guide-moment="${slugValue}">${name}</button>`
   ).join('');
 
-  const foodButtons = MOMENTS.map(([moment]) => {
+  const foodButtons = PUBLIC_MOMENTS.map(([moment]) => {
     const foods = foodsByMoment[moment] || [];
     return foods
       .map((slug) => {
@@ -115,7 +112,7 @@ function buildUI(cities, foodsByMoment) {
     <div class="rf-guide-options">${momentButtons}</div>
   </div>
   <div class="rf-guide-step" data-guide-step="food" hidden>
-    <h3 class="rf-guide-step-title"><span class="rf-guide-step-number">2</span> Comida <span style="font-weight:500;color:#a8a29e;text-transform:none;font-size:.85rem">(solo opciones con página real)</span></h3>
+    <h3 class="rf-guide-step-title"><span class="rf-guide-step-number">2</span> Comida</h3>
     <div class="rf-guide-options" id="rfGuideFoods">${foodButtons}</div>
   </div>
   <div class="rf-guide-step" data-guide-step="city" hidden>
@@ -134,160 +131,99 @@ function buildScript() {
   return `<script id="rf-separated-guide-selector-js">
 (function(){
   function init(){
-    if (document.getElementById('rfSeparatedGuidePicker')) return;
-
+    var picker = document.getElementById('rfSeparatedGuidePicker');
+    if (!picker) return;
     var old = document.getElementById('directorio');
     if (!old) {
       var dc = document.getElementById('dir-comidas') || document.getElementById('dir-platos');
       if (dc) old = dc.closest('section');
     }
+    if (old && picker.parentNode !== old.parentNode) old.replaceWith(picker);
 
-    var host = old;
-    if (!host) {
-      var foot = document.querySelector('.rf-final-footer, footer, #seo-map-ciudades');
-      host = foot ? (foot.parentElement || foot) : document.body;
-    }
+    var moment=null, food=null, city=null;
+    var foodStep=picker.querySelector('[data-guide-step="food"]');
+    var cityStep=picker.querySelector('[data-guide-step="city"]');
+    var foodsBox=picker.querySelector('#rfGuideFoods');
+    var result=picker.querySelector('#rfGuideResult');
+    var link=picker.querySelector('#rfGuideResultLink');
+    var hint=picker.querySelector('#rfGuideResultHint');
 
-    var picker = document.querySelector('#rfSeparatedGuidePicker');
-    if (!picker) return;
-
-    // Si el picker está al final del body (inyectado en build), moverlo al sitio del directorio
-    if (old && picker.parentNode !== old.parentNode) {
-      old.replaceWith(picker);
-    }
-
-    var moment = null, food = null, city = null;
-    var foodStep = picker.querySelector('[data-guide-step="food"]');
-    var cityStep = picker.querySelector('[data-guide-step="city"]');
-    var foodsBox = picker.querySelector('#rfGuideFoods');
-    var result = picker.querySelector('#rfGuideResult');
-    var link = picker.querySelector('#rfGuideResultLink');
-    var hint = picker.querySelector('#rfGuideResultHint');
-
-    function showFoodsFor(m) {
-      foodsBox.querySelectorAll('[data-guide-food]').forEach(function(btn) {
-        var match = btn.getAttribute('data-guide-food-moment') === m;
-        btn.hidden = !match;
+    function showFoodsFor(m){
+      foodsBox.querySelectorAll('[data-guide-food]').forEach(function(btn){
+        btn.hidden = btn.getAttribute('data-guide-food-moment') !== m;
         btn.classList.remove('is-active');
       });
     }
-
-    function update() {
-      if (moment && food && city) {
-        var href = '/' + city + '/' + moment + '/' + food + '/';
-        link.href = href;
-        link.textContent = 'Ver guía →';
+    function update(){
+      if(moment&&food&&city){
+        link.href='/'+city+'/'+moment+'/'+food+'/';
         result.classList.add('is-visible');
-        if (hint) {
-          var foodLabel = (picker.querySelector('[data-guide-food].is-active') || {}).textContent || food;
-          var cityLabel = (picker.querySelector('[data-guide-city].is-active') || {}).textContent || city;
-          var momentLabel = (picker.querySelector('[data-guide-moment].is-active') || {}).textContent || moment;
-          hint.textContent = momentLabel + ' · ' + foodLabel + ' · ' + cityLabel;
+        if(hint){
+          var fl=(picker.querySelector('[data-guide-food].is-active')||{}).textContent||food;
+          var cl=(picker.querySelector('[data-guide-city].is-active')||{}).textContent||city;
+          var ml=(picker.querySelector('[data-guide-moment].is-active')||{}).textContent||moment;
+          hint.textContent=ml+' · '+fl+' · '+cl;
         }
-      } else {
-        result.classList.remove('is-visible');
-        if (hint) hint.textContent = '';
-      }
+      } else result.classList.remove('is-visible');
     }
-
-    picker.addEventListener('click', function(e) {
-      var b = e.target.closest('.rf-guide-option');
-      if (!b) return;
+    picker.addEventListener('click',function(e){
+      var b=e.target.closest('.rf-guide-option'); if(!b)return;
       e.preventDefault();
-
-      if (b.hasAttribute('data-guide-moment')) {
-        moment = b.getAttribute('data-guide-moment');
-        food = null;
-        city = null;
-        picker.querySelectorAll('[data-guide-moment]').forEach(function(x) {
-          x.classList.toggle('is-active', x === b);
-        });
-        picker.querySelectorAll('[data-guide-food],[data-guide-city]').forEach(function(x) {
-          x.classList.remove('is-active');
-        });
-        showFoodsFor(moment);
-        foodStep.hidden = false;
-        cityStep.hidden = true;
-        update();
-        return;
+      if(b.hasAttribute('data-guide-moment')){
+        moment=b.getAttribute('data-guide-moment'); food=null; city=null;
+        picker.querySelectorAll('[data-guide-moment]').forEach(function(x){x.classList.toggle('is-active',x===b)});
+        picker.querySelectorAll('[data-guide-food],[data-guide-city]').forEach(function(x){x.classList.remove('is-active')});
+        showFoodsFor(moment); foodStep.hidden=false; cityStep.hidden=true; update(); return;
       }
-
-      if (b.hasAttribute('data-guide-food')) {
-        if (b.hidden) return;
-        food = b.getAttribute('data-guide-food');
-        city = null;
-        picker.querySelectorAll('[data-guide-food]').forEach(function(x) {
-          x.classList.toggle('is-active', x === b);
-        });
-        picker.querySelectorAll('[data-guide-city]').forEach(function(x) {
-          x.classList.remove('is-active');
-        });
-        cityStep.hidden = false;
-        update();
-        return;
+      if(b.hasAttribute('data-guide-food')){
+        if(b.hidden)return;
+        food=b.getAttribute('data-guide-food'); city=null;
+        picker.querySelectorAll('[data-guide-food]').forEach(function(x){x.classList.toggle('is-active',x===b)});
+        picker.querySelectorAll('[data-guide-city]').forEach(function(x){x.classList.remove('is-active')});
+        cityStep.hidden=false; update(); return;
       }
-
-      if (b.hasAttribute('data-guide-city')) {
-        city = b.getAttribute('data-guide-city');
-        picker.querySelectorAll('[data-guide-city]').forEach(function(x) {
-          x.classList.toggle('is-active', x === b);
-        });
+      if(b.hasAttribute('data-guide-city')){
+        city=b.getAttribute('data-guide-city');
+        picker.querySelectorAll('[data-guide-city]').forEach(function(x){x.classList.toggle('is-active',x===b)});
         update();
       }
     });
-
-    var search = picker.querySelector('#rfGuideCitySearch');
-    if (search) {
-      search.addEventListener('input', function() {
-        var q = this.value.toLowerCase().trim();
-        picker.querySelectorAll('[data-guide-city]').forEach(function(btn) {
-          var text = btn.textContent.toLowerCase();
-          var slug = (btn.getAttribute('data-guide-city') || '').toLowerCase();
-          btn.style.display = (!q || text.indexOf(q) >= 0 || slug.indexOf(q) >= 0) ? '' : 'none';
-        });
+    var search=picker.querySelector('#rfGuideCitySearch');
+    if(search)search.addEventListener('input',function(){
+      var q=this.value.toLowerCase().trim();
+      picker.querySelectorAll('[data-guide-city]').forEach(function(btn){
+        var t=btn.textContent.toLowerCase(), s=(btn.getAttribute('data-guide-city')||'').toLowerCase();
+        btn.style.display=(!q||t.indexOf(q)>=0||s.indexOf(q)>=0)?'':'none';
       });
-    }
+    });
   }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init); else init();
 })();
 </script>`;
 }
 
 function run() {
-  if (!fs.existsSync(INDEX)) {
-    console.warn('[fix-home-selector] sin index.html');
-    return false;
-  }
-
+  if (!fs.existsSync(INDEX)) return false;
   const { cities, foodsByMoment } = discoverFromDist();
   const totalFoods = Object.values(foodsByMoment).reduce((n, a) => n + a.length, 0);
-
   if (!cities.length || totalFoods === 0) {
-    console.warn('[fix-home-selector] dist sin guías aún; se omite (ejecutar al final del build)');
+    console.warn('[fix-home-selector] dist sin guías públicas');
     return false;
   }
 
   let html = fs.readFileSync(INDEX, 'utf8');
-
   html = html.replace(/<style id="rf-separated-guide-selector">[\s\S]*?<\/style>/i, '');
   html = html.replace(/<script id="rf-separated-guide-selector-js">[\s\S]*?<\/script>/i, '');
   html = html.replace(/<section class="rf-guide-picker"[\s\S]*?<\/section>/i, '');
 
-  const ui = buildUI(cities, foodsByMoment);
-  const injection = CSS + ui + buildScript();
-
-  if (/<\/body>/i.test(html)) {
-    html = html.replace(/<\/body>/i, injection + '</body>');
-  } else {
-    html += injection;
-  }
+  const injection = CSS + buildUI(cities, foodsByMoment) + buildScript();
+  html = /<\/body>/i.test(html)
+    ? html.replace(/<\/body>/i, injection + '</body>')
+    : html + injection;
 
   fs.writeFileSync(INDEX, html, 'utf8');
   console.log(
-    `[fix-home-selector] OK: ${cities.length} ciudades, comidas reales: ` +
-      MOMENTS.map(([m]) => `${m}=${(foodsByMoment[m] || []).length}`).join(' ')
+    `[fix-home-selector] UI: 4 momentos públicos · ${cities.length} ciudades (SEO moments ocultos en UI)`
   );
   return true;
 }
