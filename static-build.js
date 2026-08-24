@@ -15,8 +15,7 @@ try{require('./scripts/fix-chips.js').run()}catch(e){console.warn('[static-build
 try{require('./scripts/home-faq-seo.js').run()}catch(e){console.warn('[static-build] home-faq:',e.message)}
 try{require('./scripts/generate-meal-layers.js').run()}catch(e){console.warn('[static-build] meal-layers:',e.message)}
 try{require('./scripts/home-meal-filters.js').run()}catch(e){console.warn('[static-build] meal-filters:',e.message)}
+// Un solo sistema controla Momento -> Comida -> Ciudad y se ejecuta al final.
 try{require('./scripts/home-guide-moment.js').run()}catch(e){console.warn('[static-build] guide-moment:',e.message)}
-try{require('./scripts/restore-guide-moment.js').run()}catch(e){console.warn('[static-build] restore-moment:',e.message)}
-try{require('./scripts/fix-moment-flow.js').run()}catch(e){console.warn('[static-build] moment-flow:',e.message)}
 for(const required of ['index.html','sitemap.xml','robots.txt']){if(!fs.existsSync(path.join(outputDir,required)))throw new Error(`El ZIP no contiene el archivo obligatorio: ${required}`)}
-console.log('Sitio: flujo momento -> comida -> ciudad.');
+console.log('Sitio: flujo único momento -> comida -> ciudad.');
