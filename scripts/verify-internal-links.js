@@ -1,0 +1,8 @@
+const fs=require('fs'),path=require('path');
+const DIST=path.join(__dirname,'..','dist');
+const SITE='https://www.ruletadecomida.es';
+const SKIP=new Set(['/robots.txt','/favicon.ico']);
+function walk(dir,out=[]){if(!fs.existsSync(dir))return out;for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory())walk(p,out);else if(e.name.endsWith('.html'))out.push(p)}return out}
+function routeExists(urlPath){let p=decodeURIComponent(urlPath.split('?')[0].split('#')[0]);if(!p||SKIP.has(p))return true;if(p.endsWith('/'))return fs.existsSync(path.join(DIST,p.replace(/^\//,''),'index.html'));if(path.extname(p))return fs.existsSync(path.join(DIST,p.replace(/^\//,'')));return fs.existsSync(path.join(DIST,p.replace(/^\//,''),'index.html'))}
+function run(){if(!fs.existsSync(DIST))throw new Error('dist no existe');const files=walk(DIST),bad=[],seen=new Set(),re=/(?:href|action)=["']([^"']+)["']/gi;for(const file of files){const html=fs.readFileSync(file,'utf8');let m;while((m=re.exec(html))){let href=m[1];if(href.startsWith(SITE))href=href.slice(SITE.length);else if(href.startsWith('/')&&!href.startsWith('//')){}else continue;if(href.startsWith('#'))continue;const key=href.split('#')[0];if(seen.has(key))continue;seen.add(key);if(!routeExists(key))bad.push(`${path.relative(DIST,file)} -> ${key}`)}}if(bad.length)throw new Error(`ENLACES INTERNOS ROTOS: ${bad.length}. ${bad.slice(0,25).join(' | ')}`);console.log(`[verify-internal-links] OK: ${seen.size} rutas internas comprobadas, 0 enlaces 404.`)}
+if(require.main===module)run();module.exports={run};
