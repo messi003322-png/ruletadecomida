@@ -3,15 +3,14 @@ const path=require('path');
 const DIST=path.join(__dirname,'..','dist');
 const MOMENTS=[['desayuno','Desayuno','desayunar'],['almuerzo','Almuerzo','almorzar'],['merienda','Merienda','merendar'],['cena','Cena','cenar']];
 const citySkip=new Set(['assets','css','js','images']);
-const slug=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function hasFoodIndex(cityDir){return MOMENTS.some(([m])=>{const d=path.join(cityDir,m);return fs.existsSync(d)&&fs.readdirSync(d,{withFileTypes:true}).some(e=>e.isDirectory()&&fs.existsSync(path.join(d,e.name,'index.html')));});}
 function run(){
  if(!fs.existsSync(DIST)) return;
- const cities=fs.readdirSync(DIST,{withFileTypes:true}).filter(e=>e.isDirectory()&&!e.name.startsWith('.')&&!citySkip.has(e.name));
+ const cities=fs.readdirSync(DIST,{withFileTypes:true}).filter(e=>e.isDirectory()&&!e.name.startsWith('.')&&!citySkip.has(e.name)&&hasFoodIndex(path.join(DIST,e.name)));
  let repaired=0, foodsFound=new Set();
  for(const city of cities){
   for(const [m] of MOMENTS){
-   const dir=path.join(DIST,city.name,m);
-   if(!fs.existsSync(dir)) continue;
+   const dir=path.join(DIST,city.name,m); if(!fs.existsSync(dir)) continue;
    for(const e of fs.readdirSync(dir,{withFileTypes:true})) if(e.isDirectory()&&fs.existsSync(path.join(dir,e.name,'index.html'))) foodsFound.add(e.name);
   }
  }
@@ -36,7 +35,7 @@ function run(){
    }
   }
  }
- console.log(`[repair-all-food-routes] OK: ${foodsFound.size} comidas detectadas; ${repaired} rutas faltantes reparadas.`);
+ console.log(`[repair-all-food-routes] OK: ${foodsFound.size} comidas detectadas; ${repaired} rutas faltantes reparadas en ${cities.length} ciudades.`);
 }
 if(require.main===module)run();
 module.exports={run};
