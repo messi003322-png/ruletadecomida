@@ -15,6 +15,9 @@ try{require('./scripts/ultra-design.js').run()}catch(e){console.warn('[static-bu
 try{require('./scripts/fix-chips.js').run()}catch(e){console.warn('[static-build] fix-chips:',e.message)}
 try{require('./scripts/home-faq-seo.js').run()}catch(e){console.warn('[static-build] home-faq:',e.message)}
 try{require('./scripts/generate-meal-layers.js').run()}catch(e){console.warn('[static-build] meal-layers:',e.message)}
+// Rebuild every city/moment category page after generating the individual guides.
+// This guarantees all 79 x 4 category URLs use the same card-based layout.
+try{require('./scripts/ensure-guide-routes.js').run()}catch(e){throw new Error(`[static-build] guide-routes: ${e.message}`)}
 try{require('./scripts/home-meal-filters.js').run()}catch(e){console.warn('[static-build] meal-filters:',e.message)}
 // Insert Momento before wiring the guide events.
 try{require('./scripts/restore-guide-moment.js').run()}catch(e){console.warn('[static-build] restore-moment:',e.message)}
@@ -22,4 +25,4 @@ try{require('./scripts/home-guide-moment.js').run()}catch(e){console.warn('[stat
 // Prevent the guide from repeatedly re-rendering itself through a MutationObserver.
 try{require('./scripts/disable-guide-observer.js').run()}catch(e){console.warn('[static-build] guide-observer:',e.message)}
 for(const required of ['index.html','sitemap.xml','robots.txt']){if(!fs.existsSync(path.join(outputDir,required)))throw new Error(`El ZIP no contiene el archivo obligatorio: ${required}`)}
-console.log('Sitio construido: filtros + guía Momento → Comida → Ciudad.');
+console.log('Sitio construido: filtros + guías individuales + 79x4 páginas de categoría.');
