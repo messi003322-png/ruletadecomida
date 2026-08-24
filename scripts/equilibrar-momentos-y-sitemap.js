@@ -1,18 +1,12 @@
 const fs=require('fs');
 const path=require('path');
 const DIST=path.join(process.cwd(),'dist');
-const moments=[
-  ['desayuno','🍳 Desayunar'],
-  ['almuerzo','🍲 Almorzar'],
-  ['merienda','☕ Merendar'],
-  ['cena','🌙 Cenar']
-];
+const moments=[['desayuno','🍳 Desayunar','desayunar'],['almuerzo','🍲 Almorzar','almorzar'],['merienda','☕ Merendar','merendar'],['cena','🌙 Cenar','cenar']];
 function walk(dir,fn){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name);if(e.isDirectory())walk(p,fn);else if(/\.html$/i.test(e.name))fn(p)}}
 function cleanSitemapLinks(html){return html.replace(/<a\b[^>]*href=["'][^"']*sitemap(?:\.xml)?[^"']*["'][^>]*>[\s\S]*?<\/a>/gi,'');}
-function addMomentNav(html){
-  if(!/<body\b/i.test(html)||/id=["']rf-momentos-equilibrados["']/i.test(html)) return html;
-  const nav=`<nav id="rf-momentos-equilibrados" aria-label="Momentos del día" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:18px auto;max-width:900px">${moments.map(([slug,label])=>`<a href="/${slug}/" style="padding:9px 14px;border-radius:999px;text-decoration:none">${label}</a>`).join('')}</nav>`;
-  return html.replace(/<body([^>]*)>/i,`<body$1>${nav}`);
-}
+function makeRootMoment(slug,label,verb){const dir=path.join(DIST,slug);fs.mkdirSync(dir,{recursive:true});const cities=fs.readdirSync(DIST,{withFileTypes:true}).filter(e=>e.isDirectory()&&!['assets','css','js','images',...moments.map(x=>x[0])].includes(e.name)&&fs.existsSync(path.join(DIST,e.name,slug,'index.html')));const cards=cities.map(e=>`<a href="/${e.name}/${slug}/" style="display:block;padding:14px 16px;border:1px solid #eadfd7;border-radius:16px;background:#fff;text-decoration:none;color:inherit;font-weight:750">📍 ${e.name.replace(/-/g,' ')}</a>`).join('');const other=moments.filter(x=>x[0]!==slug).map(x=>`<a href="/${x[0]}/" style="padding:9px 14px;border:1px solid #eadfd7;border-radius:999px;background:#fff;text-decoration:none;color:inherit;font-weight:750">${x[1]}</a>`).join('');const html=`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${label} · Ideas de comida | Ruleta de Comida</title><meta name="description" content="Ideas para ${verb} según la ciudad y el momento del día."><meta name="robots" content="index,follow"><link rel="canonical" href="https://www.ruletadecomida.es/${slug}/"></head><body style="margin:0;background:#fffaf5;color:#241914;font-family:system-ui,-apple-system,sans-serif"><main style="max-width:1000px;margin:auto;padding:24px 16px 70px"><a href="/" style="font-weight:900;text-decoration:none;color:#e65f16">🍽️ Ruleta de Comida</a><header style="padding:42px 0 28px"><div style="font-weight:900;color:#e65f16;text-transform:uppercase;letter-spacing:.08em;font-size:.8rem">Guías de comida</div><h1 style="font-size:clamp(2.4rem,7vw,4.5rem);line-height:1.02;margin:8px 0 12px">${label}</h1><p style="font-size:1.1rem;color:#685950;max-width:720px">Descubre qué comer para ${verb}, con opciones organizadas por ciudad.</p><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:18px">${other}</div></header><section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">${cards}</section></main></body></html>`;fs.writeFileSync(path.join(dir,'index.html'),html,'utf8');}
+function addMomentNav(html){if(!/<body\b/i.test(html)||/id=["']rf-momentos-equilibrados["']/i.test(html))return html;const nav=`<nav id="rf-momentos-equilibrados" aria-label="Momentos del día" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:18px auto;max-width:900px">${moments.map(([slug,label])=>`<a href="/${slug}/" style="padding:9px 14px;border-radius:999px;text-decoration:none">${label}</a>`).join('')}</nav>`;return html.replace(/<body([^>]*)>/i,`<body$1>${nav}`);}
+if(!fs.existsSync(DIST))throw new Error('dist no existe');
+for(const [slug,label,verb] of moments)makeRootMoment(slug,label,verb);
 walk(DIST,p=>{let h=fs.readFileSync(p,'utf8');h=cleanSitemapLinks(h);if(path.relative(DIST,p)==='index.html')h=addMomentNav(h);fs.writeFileSync(p,h,'utf8')});
-console.log('OK: sitemap fuera de la navegación visible + momentos equilibrados.');
+console.log('OK: sitemap fuera de la navegación visible + 4 páginas raíz de momentos creadas + momentos equilibrados.');
