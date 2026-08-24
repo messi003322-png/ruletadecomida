@@ -9,13 +9,8 @@ if(!fs.existsSync(sourceZip))throw new Error('No se encontró sitio_usuario_esta
 fs.rmSync(outputDir,{recursive:true,force:true});fs.mkdirSync(outputDir,{recursive:true});
 const zip=new AdmZip(sourceZip);for(const entry of zip.getEntries()){const normalized=entry.entryName.replace(/\\/g,'/');if(normalized.startsWith('/')||normalized.split('/').includes('..'))throw new Error(`Ruta no permitida en el ZIP: ${entry.entryName}`)}
 zip.extractAllTo(outputDir,true);addFooterPolish(outputDir);
-try{require('./scripts/seo-postprocess.js').run()}catch(e){console.warn('[static-build] SEO:',e.message)}
-try{require('./scripts/ultra-design.js').run()}catch(e){console.warn('[static-build] ultra-design:',e.message)}
-try{require('./scripts/fix-chips.js').run()}catch(e){console.warn('[static-build] fix-chips:',e.message)}
-try{require('./scripts/home-faq-seo.js').run()}catch(e){console.warn('[static-build] home-faq:',e.message)}
-try{require('./scripts/generate-meal-layers.js').run()}catch(e){console.warn('[static-build] meal-layers:',e.message)}
-try{require('./scripts/home-meal-filters.js').run()}catch(e){console.warn('[static-build] meal-filters:',e.message)}
-// El flujo interactivo se instala UNA sola vez y siempre al final.
+for(const script of ['seo-postprocess.js','ultra-design.js','fix-chips.js','home-faq-seo.js','generate-meal-layers.js','home-meal-filters.js']){try{require('./scripts/'+script).run()}catch(e){console.warn('[static-build] '+script+':',e.message)}}
+// Un único sistema interactivo, siempre al final. Los scripts antiguos de momento se excluyen para evitar duplicados.
 try{require('./scripts/final-guide.js').run()}catch(e){console.warn('[static-build] final-guide:',e.message)}
 for(const required of ['index.html','sitemap.xml','robots.txt']){if(!fs.existsSync(path.join(outputDir,required)))throw new Error(`El ZIP no contiene el archivo obligatorio: ${required}`)}
-console.log('Sitio: flujo único momento -> comida -> ciudad.');
+console.log('Build OK: flujo único Momento -> Comida -> Ciudad.');
