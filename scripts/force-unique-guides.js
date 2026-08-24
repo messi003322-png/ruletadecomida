@@ -1,30 +1,18 @@
-const fs=require('fs'),path=require('path');
-const DIST=path.join(__dirname,'..','dist');
-const MOM={desayuno:'desayuno',almuerzo:'almuerzo',merienda:'merienda',cena:'cena'};
-function norm(s){return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
-function human(s){return String(s).split('-').filter(Boolean).map(x=>x[0]?x[0].toUpperCase()+x.slice(1):x).join(' ')}
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function hash(s){let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
-function clean(s){return String(s).replace(/<[^>]+>/g,' ').replace(/&[^;]+;/g,' ').replace(/\s+/g,' ').trim()}
-function focus(food){const n=norm(food);if(/pizza/.test(n))return 'masa, horneado y equilibrio de la cobertura';if(/sushi/.test(n))return 'arroz, temperatura, corte y proporción de cada pieza';if(/hamburg|burger/.test(n))return 'carne, pan, punto de cocción y contraste de los complementos';if(/pasta|espagu|macarr|lasa|raviol|gnoc/.test(n))return 'cocción, salsa y relación entre pasta e ingredientes';if(/arroz|paella/.test(n))return 'punto del grano, fondo y tiempo de elaboración';if(/pollo/.test(n))return 'método de cocción, jugosidad y guarnición';if(/kebab|doner|shawarma|falafel/.test(n))return 'proteína, pan, vegetales y cantidad de salsa';if(/ensalada/.test(n))return 'frescura, texturas, aliño y capacidad de saciar';if(/bocadillo|sandwich|tostada/.test(n))return 'calidad del pan, reparto del relleno y contraste';if(/taco|burrito|quesadilla|nacho/.test(n))return 'tortilla, relleno, especias y salsas';if(/tortilla|huevo/.test(n))return 'punto de cocción, ingredientes sencillos y temperatura';return 'ingredientes, preparación, cantidad y relación calidad-precio'}
-const GENERAL=[
- 'En __CITY__, una buena forma de elegir __FOOD__ es decidir primero qué estilo buscas. La misma comida puede cambiar mucho según la técnica, el tamaño de la ración y los acompañamientos que utilice cada establecimiento.',
- 'Para __MOMENT__ __FOOD__ en __CITY__, fíjate especialmente en cómo está descrita la preparación. Una carta que explica ingredientes y elaboración permite anticipar mejor el resultado que una lista enorme de nombres.',
- 'Las reseñas más útiles para __FOOD__ en __CITY__ son las que hablan del plato de forma concreta: sabor, textura, cantidad, temperatura y tiempos. Los comentarios recientes ayudan a saber cómo funciona actualmente el establecimiento.',
- 'El precio de __FOOD__ merece contexto. En __CITY__, compara lo que incluye la ración, las guarniciones y los extras antes de decidir. Una opción algo más cara puede tener mejor sentido si la elaboración y la cantidad compensan.',
- 'Si tienes poco tiempo durante el __MOMENT__, la distancia y el horario pueden pesar tanto como la comida. Para __FOOD__ en __CITY__, comprueba también si existe servicio para llevar y qué comentan los clientes sobre la rapidez.',
- 'Si puedes comer con calma, aprovecha para fijarte en el detalle que distingue a __FOOD__. Puede ser una masa concreta, un tipo de cocción, una salsa propia, un acompañamiento o una receta tradicional de la zona.',
- 'Cuando dudes entre dos lugares de __CITY__, compara primero cómo preparan __FOOD__, después el precio final y finalmente las opiniones recientes. Ese orden evita que una puntuación aislada decida por ti.',
- 'La cantidad adecuada depende del plan. __FOOD__ puede funcionar como plato principal, como algo para compartir o como una opción más ligera. Para el __MOMENT__, piensa en tu hambre y en lo que vas a comer después.',
- 'Salir de la rutina no exige cambiarlo todo. Si normalmente eliges __FOOD__ de una manera concreta, prueba otra preparación o un acompañamiento diferente y tendrás una comparación útil sin alejarte demasiado de tus gustos.',
- 'Antes de confirmar __FOOD__ en __CITY__, revisa la carta actual, el horario y el precio total. Con esos datos y unas cuantas reseñas recientes podrás elegir con mucha más seguridad.'
-];
-const TOPIC={
- 'no se que cenar':['Cuando no sabes qué cenar en __CITY__, empieza por tres preguntas: cuánta hambre tienes, cuánto tiempo tienes y cuánto quieres gastar. Con esas respuestas la lista de opciones se reduce rápidamente.','Si buscas una cena en __CITY__ sin pensarlo demasiado, decide primero entre algo ligero, una comida completa o un picoteo. Después compara dos opciones y no veinte.','Una forma sencilla de salir del bloqueo es cambiar solo una variable: cocina, salsa, ingrediente principal o formato. Así puedes probar algo distinto sin arriesgarte demasiado.','Para esta noche en __CITY__, la distancia puede ser un desempate muy útil. Si dos opciones te apetecen igual, la que llegue antes y encaje en tu presupuesto suele ganar.'],
- 'que cenar hoy':['Para decidir qué cenar hoy en __CITY__, piensa en cómo ha sido el día y en el hambre que tienes ahora. No necesitas repetir la misma elección todas las noches.','Si tienes poco tiempo esta noche, prioriza cercanía y preparaciones ágiles. Si vas con calma, aprovecha para probar una especialidad que normalmente no pedirías.','Cambiar de estilo culinario puede resolver la indecisión sin complicarte: una opción mediterránea, asiática, mexicana o italiana puede darte una dirección clara.','Cuando queden dos alternativas, compáralas por apetito, precio y distancia. La mejor cena será la que gane en el conjunto, no necesariamente la más popular.'],
- 'comida barata':['Para comer barato en __CITY__, calcula el coste real y no solo el precio que aparece en grande. Bebida, acompañamientos, postre y extras pueden cambiar bastante el total.','Los menús, platos combinados y raciones para compartir pueden ser interesantes cuando buscas que el presupuesto rinda más. Comprueba qué incluye cada opción antes de elegir.','Ahorrar no significa aceptar cualquier plato. Las reseñas que mencionan cantidad y relación calidad-precio ayudan a distinguir una ganga de una ración barata que no merece la pena.','Los precios pueden cambiar según día y horario, así que revisar la oferta disponible antes de desplazarte puede marcar una diferencia real en el presupuesto.'],
- 'cena rapida':['Si necesitas una cena rápida en __CITY__, empieza por la distancia. Un local cercano con un servicio fiable puede ser mejor que otro excelente pero demasiado lejos.','Elige una preparación que encaje con el tiempo que tienes. Bocadillos, pizzas, hamburguesas, bowls y otros platos sencillos pueden resolver la noche sin complicarla.','Las reseñas recientes son útiles para detectar esperas largas. Si vas a pedir para llevar, comprueba también comentarios sobre preparación y recogida.','La rapidez no obliga a renunciar a la calidad. Busca el punto medio entre tiempo, precio y ganas reales de comer lo que estás eligiendo.']
-};
-function sentences(food,city,moment,seed,index){const f=human(food),c=human(city),m=MOM[moment],topic=TOPIC[norm(f)];let base;if(topic)base=topic[index%topic.length].replace(/__CITY__/g,c);else base=GENERAL[index%GENERAL.length].replace(/__FOOD__/g,f).replace(/__CITY__/g,c).replace(/__MOMENT__/g,m);const extras=[` En esta página concreta de ${f}, el punto clave es ${focus(f)}.`,` En ${c}, ese detalle puede ayudarte a distinguir una preparación corriente de una propuesta realmente cuidada.`,` Para el ${m}, también conviene adaptar la elección al hambre y al tiempo disponible.`,` Si es la primera vez que pruebas ${f}, una preparación sencilla suele permitir comparar mejor el producto.`,` Si ya conoces ${f}, fíjate en aquello que haga diferente a este establecimiento frente a otras opciones.`,` El objetivo no es pedir más, sino encontrar una combinación que tenga sentido para tu plan en ${c}.`];return base+extras[(seed+index*3)%extras.length]+` Esta recomendación está planteada específicamente para ${m} en ${c}; por eso el horario, el ritmo y la cantidad que te apetezca comer también cuentan.`}
-function run(){if(!fs.existsSync(DIST))throw new Error('dist no existe');let changed=0;for(const rel of fs.readdirSync(DIST,{recursive:true})){if(!rel.endsWith('.html'))continue;const p=rel.split(path.sep);if(p.length!==4||p[3]!=='index.html'||!MOM[p[1]])continue;const file=path.join(DIST,rel);let html=fs.readFileSync(file,'utf8');const seed=hash(p.join('|'));let index=0;html=html.replace(/<p(\s[^>]*)?>([\s\S]*?)<\/p>/gi,(full,attrs,inside)=>{if(clean(inside).length<70)return full;const text=sentences(p[2],p[0],p[1],seed,index++);return `<p${attrs||''}>${esc(text)}</p>`});fs.writeFileSync(file,html,'utf8');changed++}console.log(`[force-unique-guides] ${changed} guías procesadas; párrafos de contenido regenerados por comida + ciudad + momento.`)}
-if(require.main===module)run();module.exports={run};
+/**
+ * Pase final: asegura que cada guía ciudad/momento/comida
+ * tenga un bloque rf-specific-guide. Si falta, lo genera.
+ * No reintroduce plantillas "Dónde comer No Se Que Cenar".
+ */
+const fs = require('fs');
+const path = require('path');
+const DIST = path.join(__dirname, '..', 'dist');
+const { run: rewriteAll } = require('./final-guide-rewriter');
+
+function run() {
+  // Reutiliza el generador específico completo
+  rewriteAll();
+  console.log('[force-unique-guides] OK: contenido específico forzado en todas las guías individuales.');
+}
+
+if (require.main === module) run();
+module.exports = { run };

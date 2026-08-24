@@ -1,73 +1,187 @@
-const fs=require('fs'),path=require('path');
-const DIST=path.join(__dirname,'..','dist');
-const MOMENTS={desayuno:{label:'desayuno',verb:'desayunar',angle:'empezar el día'},almuerzo:{label:'almuerzo',verb:'almorzar',angle:'hacer una comida completa'},merienda:{label:'merienda',verb:'merendar',angle:'tomar algo a media tarde'},cena:{label:'cena',verb:'cenar',angle:'terminar el día'}};
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function norm(s){return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()}
-function human(s){return String(s).split('-').filter(Boolean).map(x=>x[0]?x[0].toUpperCase()+x.slice(1):x).join(' ')}
-function hash(s){let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
-function pick(a,n){return a[n%a.length]}
-const PROFILES=[
- {keys:['pizza'],focus:'masa, horno y cobertura',intro:'La pizza cambia muchísimo según la masa y el tipo de horneado. Para acertar conviene decidir primero si buscas una base fina y crujiente, una masa más aireada o una versión contundente.',heads:[['Masa y fermentación','Observa si la masa tiene personalidad propia y si el borde está bien desarrollado. Una buena fermentación aporta aroma y textura, no solo volumen.'],['Horno y punto','El calor debe dejar la base cocida y la cobertura bien integrada sin resecarla. El acabado del borde suele revelar bastante sobre el horneado.'],['Cobertura','Tomate, queso y toppings deben estar proporcionados. Una carta muy larga no garantiza mejor resultado: importa cómo se combinan los ingredientes.'],['Qué pedir primero','Si es tu primera visita, una pizza sencilla permite valorar masa, salsa y queso antes de pasar a combinaciones más cargadas.']]},
- {keys:['sushi'],focus:'arroz, pescado y técnica',intro:'El sushi no se decide solo por el pescado. Arroz, temperatura, corte y proporción forman una pieza que debe funcionar como conjunto.',heads:[['El arroz','Debe mantener la forma sin quedar compacto y acompañar al ingrediente principal. El aliño tiene que aportar equilibrio, no tapar el resto.'],['Producto y conservación','Si eliges pescado crudo, revisa la información disponible sobre las piezas y prioriza establecimientos que transmitan cuidado en manipulación y conservación.'],['Tipo de pieza','Nigiri, maki y sashimi ofrecen experiencias diferentes. Decide si quieres probar técnica y producto o una combinación más variada.'],['Una primera elección','Una selección corta con piezas reconocibles ayuda a comparar calidad y textura antes de pedir una bandeja demasiado amplia.']]},
- {keys:['hamburguesa','burger'],focus:'carne, pan y equilibrio',intro:'Una hamburguesa memorable no depende de que sea enorme. Lo importante es que el pan, la carne, el queso y las salsas lleguen proporcionados.',heads:[['Carne','Fíjate en el tipo de carne, el grosor y el punto de cocción que ofrece el local. La preparación debe dejar sabor propio y no convertirla en un simple soporte de salsas.'],['Pan','Debe aguantar el jugo sin deshacerse y acompañar sin dominar. El tostado también cambia mucho la textura final.'],['Complementos','Queso, cebolla, pepinillo y salsa pueden aportar contraste. Cuando todos tienen la misma intensidad, la hamburguesa pierde definición.'],['Acompañamiento','Patatas, ensalada o entrantes pueden cambiar la sensación de la comida. Valora el conjunto y no solo el precio de la hamburguesa.']]},
- {keys:['pasta','espagueti','espaguetis','macarron','macarrones','lasaña','lasana','ravioli','raviolis','gnocchi','ñoqui','noquis'],focus:'cocción, salsa y producto',intro:'En la pasta tres cosas mandan: el punto de cocción, la salsa y la relación entre ambos. El formato también importa porque no todas las salsas funcionan igual.',heads:[['Punto de cocción','La textura debe tener resistencia sin resultar dura. Una pasta pasada puede hacer que incluso una buena salsa pierda fuerza.'],['Salsa y formato','Una salsa cremosa, un pesto o una preparación de tomate se comportan de manera distinta según el tipo de pasta. Busca una combinación coherente.'],['Ingrediente protagonista','Queso, carne, verduras o marisco deberían reconocerse en el plato. Una descripción detallada de la carta ayuda a saber qué esperar.'],['Elección práctica','Si dudas entre dos platos, compara intensidad, cantidad y acompañamientos según el hambre que tengas en ese momento.']]},
- {keys:['paella','arroz'],focus:'grano, fondo y cocción',intro:'Los arroces se distinguen por el punto del grano y por la profundidad del fondo. Para elegir bien, primero conviene saber qué estilo de arroz te apetece.',heads:[['Punto del grano','El arroz debe conservar la textura propia de la receta y absorber sabor sin convertirse en una masa.'],['Fondo y sofrito','Caldo, sofrito y tiempo de cocción construyen buena parte del resultado. Una especialidad de la casa puede ser una buena referencia para empezar.'],['Ingredientes','Marisco, pescado, carne o verduras deben integrarse con el arroz y mantener una textura reconocible.'],['Tiempo de elaboración','Un arroz preparado al momento necesita su tiempo. Si tienes prisa, comprueba antes el servicio para no convertir una buena elección en una espera incómoda.']]},
- {keys:['taco','tacos','burrito','nachos','quesadilla'],focus:'tortilla, relleno y contraste',intro:'En la cocina mexicana el equilibrio se encuentra entre tortilla, relleno, salsas y elementos ácidos o frescos. El mejor pedido depende de qué contraste buscas.',heads:[['Tortilla','Maíz y trigo aportan texturas distintas. Debe llegar caliente y ser suficientemente flexible para sostener el relleno.'],['Relleno','Carne, pescado, verduras o legumbres necesitan un sazonado claro y una cocción que conserve textura.'],['Salsas','Picante, lima, cebolla y otras salsas pueden transformar el plato. Empieza con moderación si no conoces la intensidad de la casa.'],['Combinación','Un taco ligero y otro más intenso pueden darte una experiencia más completa que pedir varias opciones prácticamente iguales.']]},
- {keys:['pollo'],focus:'cocción, jugosidad y guarnición',intro:'El pollo admite muchas preparaciones y cada una cambia por completo el resultado. Elegir la técnica adecuada suele ser más útil que fijarse solo en el tamaño de la ración.',heads:[['Método de cocción','Brasa, horno, plancha, guiso o fritura ofrecen texturas diferentes. Decide primero qué tipo de plato te apetece.'],['Jugosidad','Una buena pieza conserva humedad y tiene una cocción uniforme. Si queda seca, ni la salsa ni la guarnición suelen compensarlo.'],['Marinado y especias','Los condimentos pueden aportar personalidad, pero deberían complementar el pollo y no ocultarlo por completo.'],['Guarnición','Arroz, patatas, verduras o ensalada cambian la contundencia. Elige el acompañamiento según el hambre y el momento del día.']]},
- {keys:['ensalada'],focus:'frescura, textura y saciedad',intro:'Una ensalada puede ser algo ligero o una comida completa. La diferencia suele estar en la frescura, la variedad de texturas y la cantidad de ingredientes que aportan saciedad.',heads:[['Frescura','Hojas firmes y vegetales bien conservados son la base. Los ingredientes frescos permiten que una receta sencilla tenga mucho sabor.'],['Contrastes','Frutos secos, semillas, queso, fruta o elementos crujientes aportan diferentes texturas y hacen el plato menos plano.'],['Proteína','Si será tu comida principal, comprueba si incluye huevo, legumbres, pollo, pescado u otra fuente que la haga más completa.'],['Aliño','Un buen aliño une los ingredientes. El equilibrio entre aceite, acidez y condimentos importa tanto como la cantidad.']]},
- {keys:['bocadillo','sandwich','sándwich','tostada'],focus:'pan, relleno y contraste',intro:'En un bocadillo o sándwich la sencillez deja poco margen para esconder errores. Pan, relleno y humedad tienen que estar bien coordinados.',heads:[['Pan','Debe corresponder al estilo del bocadillo y conservar una textura agradable. Si se deshace con el relleno, la experiencia empeora.'],['Relleno','El ingrediente principal debe tener presencia suficiente y estar bien repartido para que cada bocado sea equilibrado.'],['Contraste','Tomate, encurtidos, hojas, aceite o una salsa pueden aportar frescura y evitar que el conjunto resulte seco.'],['Cantidad','Compara tamaño y producto. Una pieza grande no necesariamente ofrece mejor relación entre cantidad y calidad.']]},
- {keys:['tortilla','huevo','huevos'],focus:'punto de cocción y sencillez',intro:'Las recetas con huevo parecen sencillas, pero precisamente por eso dejan muy visibles el punto de cocción y la calidad de los ingredientes.',heads:[['Punto','Decide si prefieres una textura jugosa, cremosa o más cuajada. Si el local explica el punto, tendrás una pista útil antes de pedir.'],['Ingrediente base','En una tortilla de patatas, por ejemplo, patata, huevo, aceite y sal deben estar equilibrados.'],['Añadidos','Cebolla, queso o verduras pueden cambiar el perfil sin necesidad de recargar la receta.'],['Servicio','La temperatura y el momento de preparación influyen mucho en la textura. Una elaboración recién hecha suele marcar diferencia.']]},
- {keys:['kebab','doner','döner','shawarma','falafel'],focus:'proteína, pan y salsas',intro:'En un kebab, dürüm o preparación similar importa el equilibrio entre proteína, pan, vegetales y salsa. El tamaño por sí solo no indica calidad.',heads:[['Proteína','Observa el corte y la cocción. La carne o alternativa vegetal debe conservar sabor propio.'],['Pan','Pita, dürüm y otros soportes ofrecen experiencias distintas. Deben llegar frescos y sostener el relleno.'],['Vegetales','Verduras crujientes aportan frescura y contraste. Su estado también da pistas sobre el cuidado del establecimiento.'],['Salsas','Pide solo las que realmente te apetezcan y valora cómo acompañan al relleno. Demasiada salsa puede ocultar todos los demás sabores.']]}
-];
-function profile(food){const n=norm(food);return PROFILES.find(p=>p.keys.some(k=>n.includes(norm(k))))||null}
-const GENERIC=[
- ['Qué buscas exactamente','Antes de comparar opciones en __CITY__, decide qué versión de __FOOD__ te apetece. Puede ser tradicional, ligera, abundante, rápida o más elaborada; esa decisión reduce mucho las opciones.'],
- ['La carta como primera pista','Lee cómo describe el establecimiento __FOOD__. Ingredientes, técnica, tamaño de la ración y acompañamientos suelen decir más que una carta interminable.'],
- ['Mira las opiniones con lupa','Da más valor a comentarios recientes que expliquen sabor, textura, cantidad, temperatura o tiempos. Una puntuación general no cuenta toda la historia.'],
- ['Precio frente a lo que recibes','En __CITY__, compara el precio de __FOOD__ con la cantidad, los ingredientes incluidos y los extras. La opción más barata no siempre es la que mejor encaja con lo que buscas.'],
- ['El momento cambia la elección','Para __MOMENT__, piensa también en hambre, tiempo disponible y acompañamientos. El mismo plato puede funcionar de forma diferente según el plan del día.'],
- ['Dos opciones finales','Cuando queden dos establecimientos, compara su especialidad en __FOOD__, distancia, horario, reseñas recientes y precio. Así la decisión deja de depender solo de la puntuación.']
-];
-const TOPIC_DATA={
- 'no se que cenar':{intro:'Cuando no sabes qué cenar, lo más útil es reducir la decisión a pocas variables: hambre, tiempo, presupuesto y ganas de probar algo distinto.',heads:[['Empieza por el hambre','Si solo quieres picar, busca algo sencillo. Si llevas muchas horas sin comer, una opción con proteína y un acompañamiento completo puede encajar mejor.'],['Decide el tiempo','Con prisa, prioriza locales cercanos y preparaciones que conozcas. Con más tiempo, puedes comparar especialidades y probar una cocina diferente.'],['Cambia una sola cosa','Si siempre cenas lo mismo, no hace falta reinventarlo todo. Mantén el formato que te gusta y cambia la cocina, la salsa o el ingrediente principal.'],['Desempata sin darle vueltas','Quédate con dos opciones y elige la que gane en dos de tres: apetito, precio y distancia.'] ]},
- 'que cenar hoy':{intro:'Para decidir qué cenar hoy sin darle demasiadas vueltas, conviene empezar por el tipo de comida que necesitas y después elegir el lugar.',heads:[['¿Ligero o completo?','Después de una comida abundante puede apetecer algo fresco o sencillo. Si el día ha sido intenso, quizá prefieras una cena más completa.'],['¿Rápido o tranquilo?','Mira cuánto tiempo tienes antes de escoger. La distancia y el servicio para llevar pueden ser decisivos en una noche con poco margen.'],['Busca variedad','Si llevas varios días cenando parecido, cambia el estilo: cocina mediterránea, asiática, mexicana, italiana o una opción casera pueden resolver el bloqueo.'],['Hazlo fácil','Reduce la lista a dos alternativas y compara precio, distancia y ganas reales de comer cada una.'] ]},
- 'comida barata':{intro:'Comer barato no significa elegir automáticamente lo más económico. La clave está en encontrar una combinación razonable de precio, cantidad, elaboración y satisfacción.',heads:[['Mira el coste total','Comprueba si el precio incluye bebida, acompañamiento, postre u otros extras. Una oferta aparentemente barata puede cambiar al completar el pedido.'],['Busca formatos que rindan','Menús, platos combinados, raciones para compartir y opciones del día pueden ofrecer mejor relación cantidad-precio según el establecimiento.'],['Valora la calidad','Una ración grande no compensa si el producto o la preparación no te convencen. Revisa opiniones que mencionen cantidades y relación calidad-precio.'],['Aprovecha el momento','Los precios y menús pueden variar según día y horario. Si puedes elegir, compara las opciones disponibles antes de desplazarte.'] ]},
- 'cena rapida':{intro:'Una cena rápida funciona mejor cuando el tiempo de espera, la distancia y el tipo de plato están alineados con lo que necesitas esa noche.',heads:[['Prioriza cercanía','Si tienes poco margen, un local cercano puede ser mejor elección que uno con una valoración ligeramente superior pero mucho más lejos.'],['Elige preparaciones adecuadas','Bocadillos, pizzas, hamburguesas, bowls o platos preparados pueden encajar bien cuando buscas algo sencillo. Escoge según lo que realmente te apetezca.'],['Comprueba los tiempos','Las reseñas recientes pueden dar pistas sobre rapidez del servicio. Si existe opción para llevar, revisa también cómo funciona.'],['No sacrifiques todo por rapidez','Una cena rápida también puede tener buen producto. Busca el punto medio entre tiempo, precio y ganas de comer lo que has elegido.'] ]}
+/**
+ * Reescribe CADA guía ciudad/momento/comida con contenido específico.
+ * No deja plantillas genéricas "Dónde comer X".
+ */
+const fs = require('fs');
+const path = require('path');
+const DIST = path.join(__dirname, '..', 'dist');
+
+const MOMENTS = {
+  desayuno: { label: 'desayuno', verb: 'desayunar', when: 'por la mañana', pace: 'empezar el día con energía' },
+  almuerzo: { label: 'almuerzo', verb: 'almorzar', when: 'al mediodía', pace: 'hacer una comida completa' },
+  merienda: { label: 'merienda', verb: 'merendar', when: 'por la tarde', pace: 'picar algo a media tarde' },
+  cena: { label: 'cena', verb: 'cenar', when: 'por la noche', pace: 'cerrar el día sin complicaciones' }
 };
-function guideRange(html){
- const marker=html.indexOf('Guía específica de');if(marker<0)return null;
- const token=/<\/?([a-zA-Z0-9]+)(?:\s[^>]*)?>/g;const stack=[];let m;
- while((m=token.exec(html))&&m.index<marker){const raw=m[0],tag=m[1].toLowerCase();if(raw[1]==='/'){for(let i=stack.length-1;i>=0;i--){if(stack[i].tag===tag){stack.splice(i,1);break}}}else if(!/^(meta|link|img|input|br|hr|source|area|base|embed|param|track|wbr)$/i.test(tag)&&!raw.endsWith('/>'))stack.push({tag,start:m.index});}
- const candidates=stack.filter(x=>/^(section|article|div)$/i.test(x.tag));
- const text=html.slice(candidates.length?candidates[0].start:marker,Math.min(html.length,marker+20000));
- for(let i=candidates.length-1;i>=0;i--){const c=candidates[i];const close=new RegExp('\\<\\/'+c.tag+'\\s*>','ig');close.lastIndex=marker;const cm=close.exec(html);if(cm){const block=html.slice(c.start,cm.index+cm[0].length);if(/Guía específica de/i.test(block)&&/Cómo elegir un buen lugar donde comer/i.test(block))return {start:c.start,end:cm.index+cm[0].length}}}
- return null;
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
-function buildGuide(food,city,moment){
- const f=human(food),c=human(city),mo=MOMENTS[moment],seed=hash(norm(f)+'|'+norm(c)+'|'+moment),p=profile(f),topic=TOPIC_DATA[norm(f)];
- if(topic){const intro=topic.intro+' En '+c+', la mejor opción dependerá también de la distancia y de la oferta disponible en el momento.';const hs=topic.heads;return `<section class="food-guide final-guide"><div class="guide-kicker">Guía práctica · ${esc(f)}</div><h2>Dónde comer ${esc(f)} en ${esc(c)}</h2><p>${esc(intro)}</p>${hs.map((x,i)=>`<h3>${esc(x[0])}</h3><p>${esc(x[1])}</p>`).join('')}<h3>Una decisión sencilla</h3><p>${esc('En '+c+', compara dos alternativas y quédate con la que mejor encaje con tu tiempo, presupuesto y ganas de comer algo concreto hoy.')}</p></section>`}
- const sections=p?p.heads:GENERIC.map(x=>[x[0],x[1].replace(/__CITY__/g,c).replace(/__FOOD__/g,f).replace(/__MOMENT__/g,mo.label)]);
- const chosen=[];for(let i=0;i<4;i++)chosen.push(sections[(seed+i*7)%sections.length]);
- const profileIntro=p?p.intro:`Elegir ${f} en ${c} merece algo más que mirar una puntuación. Hay diferencias de preparación, cantidad, estilo y servicio que pueden cambiar por completo la experiencia.`;
- const variation=pick([
-  `Si buscas ${f} ${mo.verb} en ${c}, empieza por decidir qué resultado esperas del plato y después compara establecimientos.`,
-  `Para ${mo.verb} ${f} en ${c} durante el ${mo.label}, piensa primero en tu apetito y en cuánto tiempo quieres dedicar a la comida.`,
-  `La mejor elección de ${f} en ${c} no tiene por qué ser la más popular: depende de la preparación que te apetezca y de cómo encaje con tu plan.`,
-  `Entre varias opciones de ${f} en ${c}, una descripción clara de la preparación puede ayudarte más que una lista interminable de platos.`
- ],seed>>>4);
- const cityLine=pick([
-  `En ${c}, revisa la ubicación y el horario antes de salir; para ${mo.label}, esos detalles pueden cambiar cuál es la opción más cómoda.`,
-  `Si estás en ${c}, compara primero las alternativas que realmente puedes visitar o pedir durante el ${mo.label} y después valora el resto.`,
-  `La oferta de ${f} puede variar entre zonas de ${c}; una búsqueda corta por proximidad puede descubrir estilos muy distintos.`,
-  `En ${c}, las reseñas recientes ayudan a comprobar cómo funciona actualmente cada establecimiento y si el servicio encaja con tu momento.`
- ],seed>>>9);
- return `<section class="food-guide final-guide"><div class="guide-kicker">Guía específica de ${esc(f)}</div><h2>Cómo elegir dónde comer ${esc(f)} ${esc(mo.label)} en ${esc(c)}</h2><p>${esc(profileIntro)}</p><p>${esc(variation)}</p>${chosen.map(x=>`<h3>${esc(x[0])}</h3><p>${esc(x[1].replace(/__CITY__/g,c).replace(/__FOOD__/g,f).replace(/__MOMENT__/g,mo.label))}</p>`).join('')}<h3>Un último filtro para ${c}</h3><p>${esc(cityLine)}</p><h3>Antes de decidir</h3><p>${esc('Compara preparación, cantidad, precio, distancia y opiniones recientes. Para '+mo.label+' en '+c+', la mejor opción será la que reúna esos factores y además te apetezca de verdad.')}</p></section>`;
+function norm(s) {
+  return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
-function run(){if(!fs.existsSync(DIST))throw new Error('dist no existe');let changed=0,missed=0;
- for(const rel of fs.readdirSync(DIST,{recursive:true})){
-  if(!rel.endsWith('.html'))continue;const parts=rel.split(path.sep);if(parts.length!==4||parts[3]!=='index.html')continue;const [city,moment,food]=parts;if(!MOMENTS[moment])continue;
-  const file=path.join(DIST,rel);let html=fs.readFileSync(file,'utf8');const range=guideRange(html);if(!range){missed++;continue}const section=buildGuide(food,city,moment);html=html.slice(0,range.start)+section+html.slice(range.end);fs.writeFileSync(file,html,'utf8');changed++;
- }
- console.log(`[final-guide-rewriter] ${changed} guías reescritas con contenido específico por comida + ciudad + momento; ${missed} sin bloque localizado.`);
+function human(s) {
+  return String(s)
+    .split('-')
+    .filter(Boolean)
+    .map((x) => (x[0] ? x[0].toUpperCase() + x.slice(1) : x))
+    .join(' ');
 }
-if(require.main===module)run();module.exports={run};
+function hash(s) {
+  let h = 2166136261;
+  for (const c of String(s)) {
+    h ^= c.charCodeAt(0);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function pick(arr, n) {
+  return arr[n % arr.length];
+}
+
+const FOOD_FOCUS = [
+  { re: /pizza/, focus: 'la masa, el horno y el equilibrio de la cobertura', tip: 'Una pizza sencilla (tomate, mozzarella) sirve para juzgar la base antes de pedir combinaciones cargadas.' },
+  { re: /sushi/, focus: 'el arroz, la temperatura y la proporción de cada pieza', tip: 'Empieza por nigiri o una selección corta para valorar producto y técnica.' },
+  { re: /hamburg|burger/, focus: 'la carne, el pan y el punto de cocción', tip: 'El pan debe aguantar los jugos sin deshacerse; la carne debe tener sabor propio, no solo salsa.' },
+  { re: /pasta|espagu|macarr|lasa|raviol|gnoc|ñoqui/, focus: 'el punto de cocción y cómo se integra la salsa', tip: 'La pasta debe tener textura; si está pasada, ni la mejor salsa lo arregla.' },
+  { re: /paella|arroz/, focus: 'el punto del grano y la profundidad del fondo', tip: 'Pregunta el tiempo de elaboración: un arroz al momento no se improvisa en cinco minutos.' },
+  { re: /taco|burrito|quesadilla|nacho/, focus: 'tortilla, relleno y contraste de salsas', tip: 'Maíz o trigo cambian la textura; pide la salsa aparte si no conoces el picante de la casa.' },
+  { re: /pollo/, focus: 'el método de cocción y la jugosidad', tip: 'Brasa, plancha, horno o guiso dan resultados muy distintos: elige la técnica, no solo el tamaño.' },
+  { re: /ensalada/, focus: 'frescura, texturas y si incluye proteína', tip: 'Si es plato principal, comprueba que lleve huevo, legumbres, pollo o pescado.' },
+  { re: /bocadillo|sandwich|tostada/, focus: 'el pan, el relleno y el contraste', tip: 'Pan fresco y relleno bien repartido importan más que el tamaño de la pieza.' },
+  { re: /kebab|doner|shawarma|falafel/, focus: 'proteína, pan, vegetales y salsas', tip: 'Menos salsa de la que te ofrecen suele dejar apreciar mejor el relleno.' },
+  { re: /tortilla|huevo/, focus: 'el punto de cocción y la sencillez de ingredientes', tip: 'Pregunta si la tortilla es jugosa o cuajada; ese detalle cambia el plato.' },
+  { re: /ramen|sopa|caldo/, focus: 'la base del caldo y las texturas', tip: 'Temperatura e intensidad del caldo definen más el plato que los toppings.' },
+  { re: /crepe|waffle|helado|postre|tarta|chocolate/, focus: 'textura y equilibrio de dulzor', tip: 'Un buen postre no tiene por qué ser empalagoso: busca contraste (fruta, cacao, café).' },
+  { re: /kebab|pizza|burger|sushi/, focus: 'preparación y servicio', tip: 'Compara dos opciones cercanas antes de desplazarte lejos por una diferencia mínima.' }
+];
+
+function focusFor(food) {
+  const n = norm(food);
+  for (const f of FOOD_FOCUS) {
+    if (f.re.test(n)) return f;
+  }
+  return {
+    focus: 'ingredientes, preparación, cantidad y relación calidad-precio',
+    tip: 'Una descripción clara en la carta suele decir más que una lista interminable de nombres.'
+  };
+}
+
+function buildGuide(foodSlug, citySlug, momentKey) {
+  const food = human(foodSlug);
+  const city = human(citySlug);
+  const mo = MOMENTS[momentKey];
+  const seed = hash(`${citySlug}|${momentKey}|${foodSlug}`);
+  const ff = focusFor(foodSlug);
+
+  const openers = [
+    `Si quieres ${mo.verb} ${food} en ${city} ${mo.when}, lo útil no es una lista interminable: es saber qué detalle del plato te importa hoy.`,
+    `Para ${mo.verb} ${food} en ${city}, empieza por el resultado que buscas y después compara locales o preparaciones.`,
+    `${food} ${mo.when} en ${city} puede ser una elección rápida o una comida más cuidada: el criterio cambia según tu plan.`,
+    `Elegir ${food} para ${mo.label} en ${city} se simplifica cuando miras ${ff.focus}.`
+  ];
+
+  const body1 = [
+    `En este caso, fíjate sobre todo en ${ff.focus}. ${ff.tip}`,
+    `El punto clave de ${food} suele ser ${ff.focus}. ${ff.tip}`,
+    `Más que la popularidad del local, observa ${ff.focus}. ${ff.tip}`
+  ];
+
+  const body2 = [
+    `En ${city}, la distancia y el horario ${mo.when} pueden pesar tanto como el plato. Si tienes poco margen, prioriza cercanía y un servicio ágil.`,
+    `Para ${mo.label} en ${city}, comprueba si el establecimiento abre en ese tramo y si hay opción para llevar si no quieres quedarte.`,
+    `Las reseñas recientes de ${city} ayudan más que una nota media antigua: busca comentarios sobre sabor, cantidad y tiempos de ${food}.`,
+    `Si comparas dos sitios de ${city}, ordena así: preparación de ${food}, precio final y luego opiniones recientes.`
+  ];
+
+  const body3 = [
+    `Piensa también en el hambre real: ${food} puede ser un plato único o algo más ligero según lo que hayas comido antes.`,
+    `Si es la primera vez que pides ${food} en ${city}, una versión sencilla permite comparar mejor el producto.`,
+    `Si ya conoces ${food}, busca el detalle que diferencie a este sitio: una salsa propia, un punto de cocción o un acompañamiento distinto.`,
+    `Para ${mo.pace}, evita pedir por inercia. Dos alternativas claras bastan para decidir sin perder media hora.`
+  ];
+
+  const closing = [
+    `Resumen para ${city}: elige ${food} mirando ${ff.focus}, el tiempo que tienes ${mo.when} y el precio con extras incluidos.`,
+    `Antes de confirmar en ${city}, revisa carta, horario y una pareja de reseñas recientes centradas en ${food}.`,
+    `La mejor opción de ${food} para ${mo.label} en ${city} es la que combina preparación cuidada, cantidad razonable y que realmente te apetezca hoy.`
+  ];
+
+  const h2 = `Cómo elegir ${food} para ${mo.verb} en ${city}`;
+  const kicker = `${city} · ${mo.label} · ${food}`;
+
+  return `<section class="rf-specific-guide" data-city="${esc(citySlug)}" data-moment="${esc(momentKey)}" data-food="${esc(foodSlug)}">
+  <div class="rf-specific-kicker">${esc(kicker)}</div>
+  <h2>${esc(h2)}</h2>
+  <p>${esc(pick(openers, seed))}</p>
+  <h3>Qué mirar en ${esc(food)}</h3>
+  <p>${esc(pick(body1, seed >> 3))}</p>
+  <h3>${esc(city)} y el momento del día</h3>
+  <p>${esc(pick(body2, seed >> 7))}</p>
+  <h3>Cómo decidir sin dar vueltas</h3>
+  <p>${esc(pick(body3, seed >> 11))}</p>
+  <h3>Antes de pedir</h3>
+  <p>${esc(pick(closing, seed >> 15))}</p>
+</section>`;
+}
+
+const GUIDE_CSS = `<style id="rf-specific-guide-css">
+.rf-specific-guide{max-width:720px;margin:20px auto 28px;padding:20px 18px;border:1px solid #e7e5e4;border-radius:18px;background:#fff}
+.rf-specific-kicker{font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#c2410c;margin:0 0 8px}
+.rf-specific-guide h2{margin:0 0 12px;font-size:1.25rem;line-height:1.25;color:#1c1917}
+.rf-specific-guide h3{margin:18px 0 6px;font-size:1.02rem;color:#292524}
+.rf-specific-guide p{margin:0 0 8px;color:#44403c;line-height:1.65}
+</style>`;
+
+function stripOldGuides(html) {
+  html = html.replace(/<section class="rf-food-guide"[\s\S]*?<\/section>/gi, '');
+  html = html.replace(/<section class="food-guide[^"]*"[\s\S]*?<\/section>/gi, '');
+  html = html.replace(/<section class="rf-specific-guide"[\s\S]*?<\/section>/gi, '');
+  html = html.replace(/<section class="final-guide"[\s\S]*?<\/section>/gi, '');
+  return html;
+}
+
+function inject(html, section) {
+  if (/<h1[^>]*>[\s\S]*?<\/h1>/i.test(html)) {
+    return html.replace(/(<h1[^>]*>[\s\S]*?<\/h1>)/i, `$1\n${section}`);
+  }
+  if (/<main[^>]*>/i.test(html)) {
+    return html.replace(/<main([^>]*)>/i, `<main$1>\n${section}`);
+  }
+  return html.replace(/<\/body>/i, section + '</body>');
+}
+
+function run() {
+  if (!fs.existsSync(DIST)) throw new Error('dist no existe');
+  let changed = 0;
+
+  for (const rel of fs.readdirSync(DIST, { recursive: true })) {
+    if (!String(rel).endsWith('.html')) continue;
+    const parts = String(rel).split(path.sep);
+    if (parts.length !== 4 || parts[3] !== 'index.html') continue;
+    const [city, moment, food] = parts;
+    if (!MOMENTS[moment]) continue;
+
+    const file = path.join(DIST, rel);
+    let html = fs.readFileSync(file, 'utf8');
+    html = stripOldGuides(html);
+
+    const section = buildGuide(food, city, moment);
+    html = inject(html, section);
+
+    if (!html.includes('rf-specific-guide-css')) {
+      html = html.replace(/<\/head>/i, GUIDE_CSS + '</head>');
+    }
+
+    // Title más específico
+    const title = `${human(food)} para ${MOMENTS[moment].verb} en ${human(city)} | Ruleta de Comida`;
+    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
+
+    fs.writeFileSync(file, html, 'utf8');
+    changed++;
+  }
+
+  console.log(`[final-guide-rewriter] ${changed} guías reescritas con contenido específico (comida + ciudad + momento).`);
+}
+
+if (require.main === module) run();
+module.exports = { run };
