@@ -14,7 +14,7 @@ const MOMENTS = {
 };
 
 function esc(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
 }
 function norm(s) {
   return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -34,8 +34,11 @@ function hash(s) {
   }
   return h >>> 0;
 }
+// Los desplazamientos >> convierten el hash a entero con signo. Normalizamos
+// el índice para que nunca pueda acceder a arr[-1] y renderizar "undefined".
 function pick(arr, n) {
-  return arr[n % arr.length];
+  if (!arr.length) return '';
+  return arr[((Number(n) % arr.length) + arr.length) % arr.length];
 }
 
 const FOOD_FOCUS = [
@@ -172,7 +175,6 @@ function run() {
       html = html.replace(/<\/head>/i, GUIDE_CSS + '</head>');
     }
 
-    // Title más específico
     const title = `${human(food)} para ${MOMENTS[moment].verb} en ${human(city)} | Ruleta de Comida`;
     html = html.replace(/<title>[^<]*<\/title>/i, `<title>${esc(title)}</title>`);
 
