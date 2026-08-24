@@ -20,12 +20,12 @@ function run(){
         if(!h1)return;
         const raw=h1[1].replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
         const foodName=raw.replace(/^Gu[ií]a(?:s)? de comida\s*(?:[·:-].*)?$/i,'').trim()||raw;
-        const title=`Qué comer en ${foodName} | Ruleta de Comida`;
-        const desc=`Qué comer en ${foodName}: elige el momento del día y descubre opciones de comida con páginas individuales.`;
+        const title=`Dónde comer ${foodName} | Ruleta de Comida`;
+        const desc=`Dónde comer ${foodName}: elige el momento del día y descubre opciones de comida con páginas individuales.`;
         html=html.replace(/<title>[\s\S]*?<\/title>/i,`<title>${esc(title)}</title>`);
         html=html.replace(/<meta name="description" content="[^"]*">/i,`<meta name="description" content="${esc(desc)}">`);
-        html=html.replace(/<h1([^>]*)>[\s\S]*?<\/h1>/i,`<h1$1>Qué comer en ${esc(foodName)}</h1>`);
-        html=html.replace(/Gu[ií]as? de comida(?:\s+para)?[^<.]*/gi,`Qué comer en ${esc(foodName)}`);
+        html=html.replace(/<h1([^>]*)>[\s\S]*?<\/h1>/i,`<h1$1>Dónde comer ${esc(foodName)}</h1>`);
+        html=html.replace(/Gu[ií]as? de comida(?:\s+para)?[^<.]*/gi,`Dónde comer ${esc(foodName)}`);
         html=html.replace(/Elige el momento del d[ií]a[^<]*/i,'Elige el momento del día y descubre opciones de comida con páginas individuales.');
         fs.writeFileSync(file,html,'utf8');changed++;
       }
