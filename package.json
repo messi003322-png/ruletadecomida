@@ -4,7 +4,7 @@
   "description": "Ruleta de Comida — sitio estático publicado desde el ZIP proporcionado",
   "version": "2026.08.21",
   "scripts": {
-    "build": "node static-build.js"
+    "build": "node static-build.js && node scripts/ensure-guide-routes.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.16"
