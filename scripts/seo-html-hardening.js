@@ -28,6 +28,8 @@ walk(OUT, (file) => {
   if (!/<meta\s+[^>]*name=["']robots["']/i.test(html)) { html = html.replace(/<head([^>]*)>/i, `<head$1>${meta('robots', 'index,follow')}`); stats.robots++; }
   if (!/<meta\s+[^>]*name=["']theme-color["']/i.test(html)) { html = html.replace(/<head([^>]*)>/i, `<head$1>${meta('theme-color', '#fffaf5')}`); stats.themeColor++; }
   const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/\s+/g, ' ').trim();
+  const descriptionMatch = html.match(/<meta\s+[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i);
+  const description = descriptionMatch?.[1]?.replace(/\s+/g, ' ').trim() || '';
   const canonical = html.match(/<link\s+[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["'][^>]*>/i)?.[1] || url;
   if (!/<meta\s+[^>]*property=["']og:type["']/i.test(html)) { html = html.replace(/<head([^>]*)>/i, `<head$1>${prop('og:type', 'website')}`); stats.ogType++; }
   if (!/<meta\s+[^>]*property=["']og:site_name["']/i.test(html)) { html = html.replace(/<head([^>]*)>/i, `<head$1>${prop('og:site_name', 'Ruleta de Comida')}`); stats.ogSiteName++; }
@@ -36,6 +38,11 @@ walk(OUT, (file) => {
   const canonicalTags = html.match(/<link\s+[^>]*rel=["']canonical["'][^>]*>/gi) || [];
   if (canonicalTags.length > 1) { let seen = false; html = html.replace(/<link\s+[^>]*rel=["']canonical["'][^>]*>/gi, tag => { if (seen) return ''; seen = true; return tag; }); stats.canonicalDedup++; }
   if (title && title.length > 60) { html = html.replace(/(<title[^>]*>)[\s\S]*?(<\/title>)/i, `$1${esc(title.slice(0, 57).replace(/[|,:;\-\s]+$/, '').trim())}$2`); stats.titleTrim++; }
+  if (description && description.length > 160) {
+    const trimmed = description.slice(0, 157).replace(/[|,:;\-\s]+$/, '').trim();
+    html = html.replace(/(<meta\s+[^>]*name=["']description["'][^>]*content=["'])([^"']*)(["'][^>]*>)/i, `$1${esc(trimmed)}$3`);
+    stats.descriptionTrim++;
+  }
   html = html.replace(/<a\b([^>]*?)href=["']\s*["']([^>]*)>/gi, '<a$1$2>');
   const beforeExternal = html;
   html = html.replace(/<a\b([^>]*?)target=["']_blank["']([^>]*)>/gi, (m, a, b) => /\brel=["'][^"']*noopener/i.test(m) ? m : `<a${a}target="_blank" rel="noopener noreferrer"${b}>`);
