@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.ruletadecomida.es/schemas/local-places.schema.json",
+  "title": "Ruleta de Comida local places",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "name", "city", "latitude", "longitude", "source", "lastVerifiedAt"],
+    "properties": {
+      "id": { "type": "string", "minLength": 1 },
+      "name": { "type": "string", "minLength": 1 },
+      "city": { "type": "string", "minLength": 1 },
+      "address": { "type": "string" },
+      "categories": { "type": "array", "items": { "type": "string" } },
+      "priceLevel": { "type": ["integer", "null"], "minimum": 0, "maximum": 4 },
+      "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+      "longitude": { "type": "number", "minimum": -180, "maximum": 180 },
+      "website": { "type": ["string", "null"], "format": "uri" },
+      "source": { "type": "string", "minLength": 1 },
+      "lastVerifiedAt": { "type": "string", "format": "date-time" }
+    },
+    "additionalProperties": false
+  }
+}
