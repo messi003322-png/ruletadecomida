@@ -3,7 +3,7 @@ const path = require('path');
 
 const dist = path.join(process.cwd(), 'dist');
 const sitemapDir = dist;
-const canonicalHost = 'https://ruletadecomida.es';
+const canonicalHost = 'https://www.ruletadecomida.es';
 
 if (!fs.existsSync(dist)) throw new Error('dist no existe');
 
