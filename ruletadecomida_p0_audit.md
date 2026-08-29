@@ -30,12 +30,14 @@ Se sustituyeron las integraciones anteriores por el script ofuscado proporcionad
 | Commit | `39f9888` — `Replace legacy advertising integration` |
 | Rama | `main` |
 | Repositorio | `messi003322-png/ruletadecomida` |
-| Despliegue | `dpl_89KSU6ZAmqoBjTzMcY25VR6SZ4Mm` |
+| Despliegue de integración | `dpl_89KSU6ZAmqoBjTzMcY25VR6SZ4Mm` |
+| Despliegue final con auditoría | `dpl_6uV3PZUpspbs9q8mjquSxRrVSNgN` |
 | Objetivo | `production` |
-| Estado de la última consulta | `BUILDING` |
+| Estado de integración | `BUILDING` en la última consulta |
+| Estado del despliegue final | `QUEUED` en la última consulta |
 | URL de despliegue | `https://ruletadecomidalisto-4tr0whyan-ruleta-de-comida.vercel.app/` |
 
-El build remoto alcanzó el mensaje `[advertising-scripts] 204049 HTML pages updated with one new publisher script; previous ad integrations removed.` No se observaron errores de compilación en el filtro de errores. La URL temporal respondió con redirección SSO de Vercel, por lo que la comprobación HTTP pública final queda pendiente de que el despliegue pase a `READY`.
+El build remoto alcanzó el mensaje `[advertising-scripts] 204049 HTML pages updated with one new publisher script; previous ad integrations removed.` No se observaron errores de compilación en el filtro de errores. La URL temporal respondió con redirección SSO de Vercel, por lo que la comprobación HTTP pública final queda pendiente de que el despliegue final pase a `READY`.
 
 ## Pendientes de verificación
 
