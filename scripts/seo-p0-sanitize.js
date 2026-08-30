@@ -24,14 +24,15 @@ walk(OUT, (file) => {
     return '';
   });
 
+  // Repair legacy pages whose plain-text H1 was emitted with an H2 closing tag.
+  // The conservative text-only pattern avoids touching valid nested markup.
+  html = html.replace(/<h1([^>]*)>([^<]*)<\/h2>/gi, '<h1$1>$2</h1>');
+
   // The homepage contains one primary H1; these two injected section headings are H2s.
   html = html.replace(/<h1([^>]*\bid=["'](?:local-h1|pillar-h1)["'][^>]*)>/gi, '<h2$1>');
-  html = html.replace(/<\/h1>/gi, (closing, offset, full) => {
-    const before = full.slice(0, offset);
-    const openH1 = (before.match(/<h1\b/gi) || []).length;
-    const closeH1 = (before.match(/<\/h1>/gi) || []).length;
-    return openH1 > closeH1 ? '</h2>' : closing;
-  });
+  // Only headings whose opening tag was explicitly converted above may use a closing H2.
+  // Never rewrite every closing H1: that produces invalid markup on all guide pages.
+  html = html.replace(/(<h2[^>]*\bid=["'](?:local-h1|pillar-h1)["'][^>]*>[\s\S]*?)<\/h1>/gi, '$1</h2>');
 
   if (html !== original) {
     if (html.match(/<h2[^>]*\bid=["'](?:local-h1|pillar-h1)["']/gi)) secondaryH1sFixed += 1;

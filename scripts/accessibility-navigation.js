@@ -17,7 +17,14 @@ walk(OUT, (file) => {
   const original = html;
   if (!html.includes('rf-skip-link')) html = html.replace(/<body([^>]*)>/i, `<body$1>${skip}`);
   if (!/id=["']main-content["']/i.test(html)) {
-    html = html.replace(/<main(\s|>)/i, '<main id="main-content"$1');
+    if (/<main(\s|>)/i.test(html)) {
+      html = html.replace(/<main(\s|>)/i, '<main id="main-content"$1');
+    } else if (/<div[^>]*class=["'][^"']*\bwrap\b[^"']*["'][^>]*>/i.test(html)) {
+      html = html.replace(/(<div[^>]*class=["'][^"']*\bwrap\b[^"']*["'][^>]*)>/i, '$1 id="main-content">');
+    } else {
+      html = html.replace(/<body([^>]*)>/i, '<body$1><div id="main-content">');
+      html = html.replace(/<\/body>/i, '</div></body>');
+    }
   }
   if (html !== original) {
     fs.writeFileSync(file, html, 'utf8');
