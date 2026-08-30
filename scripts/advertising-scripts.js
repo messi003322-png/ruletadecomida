@@ -11,7 +11,7 @@ const path = require('path');
 
 const DIST = path.join(__dirname, '..', 'dist');
 const SCRIPT_ID = 'adcash-autotag-zxsbhnljps';
-const LIBRARY_HTML = '<script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>';
+const LIBRARY_HTML = '<script id="aclib" type="text/javascript" src="/adcash-anti-adblock.js"></script>';
 const AUTOTAG_HTML = `<script id="${SCRIPT_ID}" type="text/javascript">
     aclib.runAutoTag({
         zoneId: 'zxsbhnljps',
@@ -45,7 +45,7 @@ function removePreviousAdvertising(html) {
 
   // Retira redes o cargadores de monetización anteriores incrustados en HTML histórico.
   return result
-    .replace(/\s*<script\b[^>]*\bsrc=["'][^"']*(?:acscdn\.com|al5sm\.com|monetag|impassabletroubledwistful|profitableratecpmnetwork|adsterra|popads)[^"']*["'][^>]*>\s*<\/script>\s*/gi, '\n')
+    .replace(/\s*<script\b[^>]*\bsrc=["'][^"']*(?:acscdn\.com|adbpage\.com|al5sm\.com|monetag|impassabletroubledwistful|profitableratecpmnetwork|adsterra|popads)[^"']*["'][^>]*>\s*<\/script>\s*/gi, '\n')
     .replace(/\s*<script\b[^>]*>\s*[\s\S]*?(?:a6cc452ba86aee46ecc8449d28cc7873|zxsbhnljps|aclib\.runAutoTag|popads)[\s\S]*?<\/script>\s*/gi, '\n');
 }
 
