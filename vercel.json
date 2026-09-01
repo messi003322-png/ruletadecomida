@@ -1,67 +1,17 @@
 {
-  "buildCommand": "npm install && npm run build",
-  "installCommand": "npm install",
-  "outputDirectory": "dist",
-  "cleanUrls": true,
   "redirects": [
     {
-      "source": "/guia-comidas-diarias",
-      "destination": "/guia-completa-de-comidas/",
-      "permanent": true
-    },
-    {
-      "source": "/guia-comidas-diarias/",
-      "destination": "/guia-completa-de-comidas/",
-      "permanent": true
-    },
-    {
-      "source": "/guia-comidas-diarias/:path*",
-      "destination": "/guia-completa-de-comidas/:path*",
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "ruletadecomida.es" }],
+      "destination": "https://www.ruletadecomida.es/:path*",
       "permanent": true
     }
   ],
   "headers": [
     {
-      "source": "/sitemap.xml",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
-        }
-      ]
-    },
-    {
-      "source": "/robots.txt",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
-        }
-      ]
-    },
-    {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
   ]
