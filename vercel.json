@@ -5,6 +5,16 @@
       "has": [{ "type": "host", "value": "ruletadecomida.es" }],
       "destination": "https://www.ruletadecomida.es/:path*",
       "permanent": true
+    },
+    {
+      "source": "/guia/:food/:city",
+      "destination": "/:city/:food/",
+      "permanent": true
+    },
+    {
+      "source": "/guia/:food/:city/",
+      "destination": "/:city/:food/",
+      "permanent": true
     }
   ],
   "headers": [
