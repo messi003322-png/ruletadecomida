@@ -1,6 +1,7 @@
 /**
- * Reescritura de calidad: cuerpos únicos por ciudad + comida + momento + modificador.
- * Reduce thin content y solapamiento entre páginas programáticas.
+ * MAX QUALITY SEO content rewrite for every programmatic page.
+ * Unique blocks by city + food + moment + modifier (deterministic).
+ * Fixes thin /comer/ pages and short SEO moments.
  */
 const fs = require('fs');
 const path = require('path');
@@ -8,233 +9,144 @@ const DIST = path.join(__dirname, '..', 'dist');
 const SITE = 'https://www.ruletadecomida.es';
 
 const MOMENTS = {
-  desayuno: { label: 'desayuno', verb: 'desayunar', when: 'por la mañana', energy: 'empezar el día' },
-  almuerzo: { label: 'almuerzo', verb: 'almorzar', when: 'al mediodía', energy: 'recuperar energías' },
-  merienda: { label: 'merienda', verb: 'merendar', when: 'por la tarde', energy: 'un pico entre horas' },
-  cena: { label: 'cena', verb: 'cenar', when: 'por la noche', energy: 'cerrar el día' },
-  brunch: { label: 'brunch', verb: 'hacer brunch', when: 'a media mañana o mediodía de finde', energy: 'un plan más tranquilo' },
-  'media-manana': { label: 'media mañana', verb: 'tomar algo a media mañana', when: 'entre desayuno y almuerzo', energy: 'mantener el ritmo' },
-  noche: { label: 'noche', verb: 'comer de noche', when: 'a última hora', energy: 'algo ligero o reconfortante' }
+  desayuno: {
+    label: 'desayuno', verb: 'desayunar', when: 'por la mañana',
+    goal: 'empezar el día con energía sin complicarte',
+    avoid: 'platos demasiado pesados si luego tienes una mañana larga',
+    questions: ['¿Tienes 10 minutos o 30?', '¿Necesitas algo saciante o solo un empujón?', '¿Sales o desayunas en casa?']
+  },
+  almuerzo: {
+    label: 'almuerzo', verb: 'almorzar', when: 'al mediodía',
+    goal: 'comer completo sin comerse el resto de la tarde',
+    avoid: 'opciones que tardan más que tu descanso real',
+    questions: ['¿Cuántos minutos tienes de verdad?', '¿Trabajas después?', '¿Presupuesto cerrado o flexible?']
+  },
+  merienda: {
+    label: 'merienda', verb: 'merendar', when: 'por la tarde',
+    goal: 'un pico entre horas que no arruine la cena',
+    avoid: 'azúcar alto si luego te cuesta cenar ligero',
+    questions: ['¿Hambre real o aburrimiento?', '¿Cenas pronto?', '¿Lo necesitas para llevar?']
+  },
+  cena: {
+    label: 'cena', verb: 'cenar', when: 'por la noche',
+    goal: 'cerrar el día con algo satisfactorio y manejable',
+    avoid: 'platos muy pesados si te acuestas pronto',
+    questions: ['¿Cocinas, pides o sales?', '¿Cenas solo o acompañado?', '¿Quieres ligero o contundente?']
+  },
+  brunch: {
+    label: 'brunch', verb: 'hacer brunch', when: 'a media mañana o mediodía de finde',
+    goal: 'un plan más tranquilo que una comida exprés',
+    avoid: 'sitios sin reserva en hora punta de sábado',
+    questions: ['¿Es plan social o rápido?', '¿Prefieres salado o dulce?', '¿Cuánto tiempo puedes estar?']
+  },
+  'media-manana': {
+    label: 'media mañana', verb: 'tomar algo a media mañana', when: 'entre desayuno y almuerzo',
+    goal: 'mantener el ritmo sin una comida completa',
+    avoid: 'raciones de almuerzo disfrazadas de snack',
+    questions: ['¿Cuánto aguanta tu hambre?', '¿Puedes lavarte las manos/cubiertos?', '¿Lo comes en movimiento?']
+  },
+  noche: {
+    label: 'noche', verb: 'comer de noche', when: 'a última hora',
+    goal: 'algo ligero o reconfortante sin montar un festín',
+    avoid: 'fritos muy pesados si vas a dormir enseguida',
+    questions: ['¿Hambre real o costumbre?', '¿Nevera o pedido?', '¿Cuánto puedes digerir ahora?']
+  }
 };
 
 const MODS = {
   barato: {
-    label: 'barato',
-    focus: 'gastar poco sin quedarte con hambre',
+    label: 'barato', focus: 'gastar poco sin quedarte a medias',
+    checks: ['precio final vs ración', 'extras ocultos', 'mínimo de pedido + envío'],
     tips: [
-      'Compara el precio final con la ración real, no solo el precio de carta.',
-      'Evita extras que disparan la cuenta (bebidas, salsas, suplementos).',
-      'Si el mínimo de pedido + envío es alto, a veces sale mejor una opción casera.'
-    ]
+      'Compara el precio por saciedad, no solo el número de la carta.',
+      'Una opción barata deja de serlo si necesitas dos platos.',
+      'En delivery, suma envío y suplementos antes de decidir.'
+    ],
+    win: 'Encuentras una ración suficiente a buen precio y sin extras innecesarios.'
   },
   cerca: {
-    label: 'cerca',
-    focus: 'priorizar distancia y tiempo de llegada',
+    label: 'cerca', focus: 'minimizar distancia y tiempo de llegada',
+    checks: ['minutos reales de trayecto', 'colas habituales', 'horario de ahora'],
     tips: [
-      'Mide el tiempo total: desplazamiento + espera + comer.',
-      'Si tienes poco margen, cercanía gana a la “mejor nota” del mapa.',
-      'Revisa horario real de apertura en el momento que vas a ir o pedir.'
-    ]
+      'Si vas justo de tiempo, cercanía gana a la nota media del mapa.',
+      'Cuenta desplazamiento + espera, no solo el tiempo de cocina.',
+      'Revisa si está abierto exactamente en este momento.'
+    ],
+    win: 'Comes antes y con menos fricción, aunque no sea la opción “instagram”. '
   },
   'calidad-precio': {
-    label: 'calidad-precio',
-    focus: 'equilibrar sabor, cantidad y coste',
+    label: 'calidad-precio', focus: 'equilibrar sabor, cantidad y coste',
+    checks: ['qué incluye el plato', 'reseñas de cantidad', 'si repetirías'],
     tips: [
-      'Una nota alta no basta: mira comentarios sobre cantidad y repetición.',
-      'Compara qué incluye el plato (guarnición, pan, bebida).',
-      'Si pagas un poco más pero evitas pedir un segundo plato, puede salir a cuenta.'
-    ]
+      'Una nota alta no basta: mira comentarios recientes de ración y sabor.',
+      'A veces pagar 2€ más evita pedir un segundo plato.',
+      'Valora guarnición, pan o bebida si van incluidos.'
+    ],
+    win: 'Sales satisfecho sin sentir que pagaste de más por marketing.'
   },
   rapido: {
-    label: 'rápido',
-    focus: 'minimizar minutos hasta sentarte a comer',
+    label: 'rápido', focus: 'reducir minutos hasta la primera bocado',
+    checks: ['tiempo de prep', 'hora punta', 'plan B de 10 minutos'],
     tips: [
-      'Elige preparaciones simples o sitios con rotación alta.',
-      'Evita horarios punta si puedes; el mismo plato tarda el doble.',
-      'Ten un plan B de 10 minutos por si el primero falla.'
-    ]
+      'Elige preparaciones simples o sitios con mucha rotación.',
+      'En punta, el mismo plato puede tardar el doble.',
+      'Ten un plan B listo por si el primero se alarga.'
+    ],
+    win: 'Resuelves el hambre dentro de tu ventana real de tiempo.'
   },
-  delivery: {
-    label: 'a domicilio',
-    focus: 'pedir sin salir y controlar tiempos de reparto',
+  'a-domicilio': {
+    label: 'a domicilio', focus: 'pedir sin salir controlando tiempos y costes',
+    checks: ['mínimo de pedido', 'precio de envío', 'ETA realista'],
     tips: [
-      'Revisa mínimo de pedido, envío y tiempo estimado real.',
-      'En días de lluvia o finde, suma margen al tiempo que pone la app.',
-      'Si el envío es caro, valora recoger o cocinar algo sencillo.'
-    ]
+      'En lluvia o finde, suma margen al tiempo de la app.',
+      'Si el envío es caro, valora recogida o cocina exprés.',
+      'Mira si el plato viaja bien (no todo llega en buen estado).'
+    ],
+    win: 'Te llega en condiciones y el coste total sigue teniendo sentido.'
   },
   saludable: {
-    label: 'saludable',
-    focus: 'equilibrar el plato sin complicarte',
+    label: 'saludable', focus: 'equilibrar el plato sin obsesionarte',
+    checks: ['proteína', 'vegetales', 'salsas y frituras'],
     tips: [
       'Prioriza proteína + vegetal + hidrato en proporción razonable.',
-      'Pide salsas aparte si sueles pasarte con el aliño.',
-      'Una versión “ligera” no tiene que ser aburrida: cambia el método, no solo quita ingredientes.'
-    ]
+      'Pide salsas aparte si sueles pasarte.',
+      'Cambia el método (plancha/horno) antes de vaciar el plato de sabor.'
+    ],
+    win: 'Comes mejor sin convertir la comida en una restricción.'
   },
-  para-llevar: {
-    label: 'para llevar',
-    focus: 'que viaje bien y se pueda comer fuera',
+  'para-llevar': {
+    label: 'para llevar', focus: 'que viaje bien y se pueda comer fuera',
+    checks: ['envase', 'temperatura', 'si necesita cubiertos'],
     tips: [
-      'Evita platos que se desmontan o se enfrían mal.',
-      'Elige envases que no empapen el pan o la base.',
-      'Si comes en el trabajo, prioriza algo que no necesite cubiertos especiales.'
-    ]
+      'Evita platos que se desmontan o se empapan.',
+      'Si comes en el trabajo, prioriza facilidad real.',
+      'Confirma tiempos de recogida para no esperar de pie.'
+    ],
+    win: 'Llegas y comes sin que el plato se haya destruido por el camino.'
   }
 };
 
 const CITY = {
-  madrid: {
-    name: 'Madrid',
-    vibe: 'oferta enorme y horarios largos',
-    tip: 'En hora punta el delivery se retrasa: si tienes prisa, prioriza cercanía o cocina rápida.',
-    zones: 'Malasaña, Lavapiés, Chamberí y centros bien comunicados concentran mucha oferta.'
-  },
-  barcelona: {
-    name: 'Barcelona',
-    vibe: 'cocina mediterránea y propuestas internacionales',
-    tip: 'El centro y Eixample tienen de todo; si buscas precio, mira un poco más afuera del turístico.',
-    zones: 'Gràcia, Poblenou y alrededores del Eixample suelen equilibrar ambiente y opciones.'
-  },
-  valencia: {
-    name: 'Valencia',
-    vibe: 'arroz, producto fresco y ritmo mediterráneo',
-    tip: 'En verano apetece más lo frío y ligero; en invierno gana lo reconfortante.',
-    zones: 'Centro, Ruzafa y zonas universitarias tienen mucha rotación de locales.'
-  },
-  sevilla: {
-    name: 'Sevilla',
-    vibe: 'cocina andaluza, tapas y calor que marca el ritmo',
-    tip: 'Con calor, prioriza sitios con sombra/AC o platos menos pesados al mediodía.',
-    zones: 'Centro y Triana concentran opciones; en barrios residenciales gana el delivery cercano.'
-  },
-  bilbao: {
-    name: 'Bilbao',
-    vibe: 'cocina vasca y tradición de pintxos',
-    tip: 'Si sales, mira horarios reales: algunos sitios cierran entre servicios.',
-    zones: 'Casco Viejo e Indautxu suelen tener buena densidad de opciones.'
-  },
-  malaga: {
-    name: 'Málaga',
-    vibe: 'pescado, fritura y cocina de sol',
-    tip: 'En temporada alta el centro se llena: reserva o elige barrios contiguos.',
-    zones: 'Centro histórico y zonas de playa cambian mucho el tipo de oferta.'
-  },
-  zaragoza: {
-    name: 'Zaragoza',
-    vibe: 'cocina aragonesa y opciones prácticas de día a día',
-    tip: 'Para comer rápido en laborable, prioriza cercanía al trabajo o casa.',
-    zones: 'Centro y Delicias concentran buena parte de la oferta cotidiana.'
-  },
-  murcia: {
-    name: 'Murcia',
-    vibe: 'producto de huerta y cocina local',
-    tip: 'Aprovecha temporada de verdura si buscas platos frescos y razonables.',
-    zones: 'Centro y ensanches con buena densidad de locales de diario.'
-  },
-  granada: {
-    name: 'Granada',
-    vibe: 'tapas y ambiente universitario',
-    tip: 'En zonas muy turísticas compara precio y ración antes de sentarte.',
-    zones: 'Centro y Realejo tienen mucho movimiento; en barrios gana lo de diario.'
-  },
-  alicante: {
-    name: 'Alicante',
-    vibe: 'mediterráneo, arroz y opciones de costa',
-    tip: 'En verano el timing cambia: evita picos de terraza si vas justo de tiempo.',
-    zones: 'Centro y zona de playa ofrecen perfiles muy distintos de carta.'
-  }
-};
-
-const FOOD = {
-  'pizza-de-sarten': {
-    name: 'Pizza de sartén',
-    kind: 'masa rápida hecha en sartén',
-    look: 'base bien hecha, queso fundido y toppings sin pasarse de grasa',
-    time: '15–25 min en casa; delivery según zona',
-    budget: '€–€€',
-    tip: 'Si la haces en casa, no sobrecargues de salsa: la base se empapa.'
-  },
-  pizza: {
-    name: 'Pizza',
-    kind: 'plato compartible o individual muy versátil',
-    look: 'horno correcto, masa con punto y queso de verdad',
-    time: '20–35 min típico en local o delivery',
-    budget: '€–€€',
-    tip: 'Compara tamaño real de la base: el precio engaña si la pizza es mini.'
-  },
-  'tortilla-de-patatas': {
-    name: 'Tortilla de patatas',
-    kind: 'clásico de huevo y patata',
-    look: 'punto jugoso o cuajado según gusto; aceite de calidad',
-    time: '30–45 min casera; más rápida si ya está hecha',
-    budget: '€',
-    tip: 'Pregunta el punto: jugosa vs cuajada cambia por completo el plato.'
-  },
-  'yogur-con-fruta': {
-    name: 'Yogur con fruta',
-    kind: 'opción ligera y rápida',
-    look: 'yogur natural o griego + fruta de verdad (no solo sirope)',
-    time: '5–10 min',
-    budget: '€',
-    tip: 'Si quieres más saciedad, añade frutos secos o avena.'
-  },
-  'pollo-a-la-plancha': {
-    name: 'Pollo a la plancha',
-    kind: 'proteína simple y adaptable',
-    look: 'no reseco, bien sazonado, con guarnición real',
-    time: '15–25 min',
-    budget: '€€',
-    tip: 'La diferencia está en el acompañamiento: ensalada o arroz cambian el resultado.'
-  },
-  sushi: {
-    name: 'Sushi',
-    kind: 'pescado/arroz en formato rolls o nigiri',
-    look: 'arroz en su punto, pescado fresco, wasabi y soja con sentido',
-    time: '25–40 min delivery frecuente',
-    budget: '€€–€€€',
-    tip: 'Mira reseñas recientes de frescura; el sushi antiguo se nota enseguida.'
-  },
-  hamburguesa: {
-    name: 'Hamburguesa',
-    kind: 'carne (o alternativa) en pan',
-    look: 'punto de la carne, pan que aguante, no solo salsa',
-    time: '15–25 min',
-    budget: '€–€€',
-    tip: 'Si es “barata”, confirma tamaño del burger y si incluye patatas.'
-  },
-  'crema-de-calabaza': {
-    name: 'Crema de calabaza',
-    kind: 'sopa/crema reconfortante',
-    look: 'textura fina, sabor a calabaza de verdad, no solo nata',
-    time: '25–40 min',
-    budget: '€',
-    tip: 'Pide o prepara un topping (semillas, croutons) si la quieres más completa.'
-  },
-  'batido-de-platano': {
-    name: 'Batido de plátano',
-    kind: 'bebida-merienda saciante',
-    look: 'plátano real, densidad buena, sin exceso de azúcar añadido',
-    time: '5–10 min',
-    budget: '€',
-    tip: 'Si lo usas como merienda, suma proteína (yogur o leche) para que aguante más.'
-  },
-  'pasta-al-pesto': {
-    name: 'Pasta al pesto',
-    kind: 'pasta rápida con salsa de albahaca',
-    look: 'pesto aromático, pasta al dente, queso al gusto',
-    time: '15–20 min',
-    budget: '€–€€',
-    tip: 'Reserva un poco de agua de cocción: ayuda a ligar la salsa.'
-  },
-  ramen: {
-    name: 'Ramen',
-    kind: 'caldo + fideos + toppings',
-    look: 'caldo con cuerpo, huevo y toppings que aporten',
-    time: '20–35 min',
-    budget: '€€',
-    tip: 'En delivery el huevo y las verduras marcan si llega en buen estado.'
-  }
+  madrid: { name: 'Madrid', vibe: 'oferta enorme y horarios largos', tip: 'En hora punta el delivery se retrasa: prioriza cercanía o cocina rápida.', zones: 'Malasaña, Lavapiés, Chamberí y zonas bien comunicadas concentran mucha oferta.', rhythm: 'ciudad que come tarde y pide mucho a domicilio' },
+  barcelona: { name: 'Barcelona', vibe: 'mediterránea e internacional', tip: 'Fuera del eje más turístico suele haber mejor relación calidad-precio.', zones: 'Gràcia, Poblenou y Eixample equilibran ambiente y opciones.', rhythm: 'ritmo de terraza y delivery según barrio' },
+  valencia: { name: 'Valencia', vibe: 'producto fresco y cocina mediterránea', tip: 'El clima cambia el antojo: más ligero en calor, más reconfortante en frío.', zones: 'Centro, Ruzafa y zonas universitarias tienen alta rotación.', rhythm: 'ciudad cómoda para comer fuera entre semana' },
+  sevilla: { name: 'Sevilla', vibe: 'andaluza, tapas y calor que marca el día', tip: 'Con calor, valora sombra/AC o platos menos pesados al mediodía.', zones: 'Centro y Triana concentran oferta; en residencial gana lo cercano.', rhythm: 'horarios y calor condicionan más que en el norte' },
+  bilbao: { name: 'Bilbao', vibe: 'vasca y tradición de pintxos', tip: 'Revisa horarios: algunos locales cierran entre servicios.', zones: 'Casco Viejo e Indautxu suelen tener buena densidad.', rhythm: 'come con criterio y valora producto' },
+  malaga: { name: 'Málaga', vibe: 'costa, pescado y cocina de sol', tip: 'En temporada alta evita solo el centro saturado si vas justo de tiempo.', zones: 'Centro y zonas de playa cambian por completo la carta típica.', rhythm: 'turismo y diario conviven en la misma ciudad' },
+  zaragoza: { name: 'Zaragoza', vibe: 'práctica y de día a día', tip: 'En laborable, cercanía al trabajo suele ganar.', zones: 'Centro y Delicias concentran mucha oferta cotidiana.', rhythm: 'decisiones rápidas entre semana' },
+  murcia: { name: 'Murcia', vibe: 'huerta y cocina local', tip: 'Aprovecha temporada de verdura si buscas platos frescos.', zones: 'Centro y ensanches con buena densidad de diario.', rhythm: 'producto local bien aprovechado' },
+  granada: { name: 'Granada', vibe: 'tapas y ambiente universitario', tip: 'En zonas muy turísticas compara ración y precio antes.', zones: 'Centro y Realejo se mueven mucho; en barrios gana lo habitual.', rhythm: 'mezcla de tapeo y comida de diario' },
+  alicante: { name: 'Alicante', vibe: 'mediterránea de costa', tip: 'En verano las terrazas se llenan: mira tiempos reales.', zones: 'Centro y playa ofrecen perfiles distintos.', rhythm: 'más terraza en temporada alta' },
+  cordoba: { name: 'Córdoba', vibe: 'tradicional y de interior', tip: 'El calor central cambia qué apetece al mediodía.', zones: 'Centro histórico vs barrios: distinta densidad y precios.', rhythm: 'cocina local con ritmo de ciudad media' },
+  vigo: { name: 'Vigo', vibe: 'atlántica y de producto', tip: 'Prioriza frescura y cercanía si el tiempo aprieta.', zones: 'Centro y zonas portuarias/residenciales varían la oferta.', rhythm: 'decisiones prácticas con buena materia prima' },
+  gijon: { name: 'Gijón', vibe: 'asturiana y contundente cuando toca', tip: 'Si quieres ligero, dilo explícitamente: la tradición tira a generosa.', zones: 'Centro y zonas de playa/residencial cambian el plan.', rhythm: 'cocina de sustancia y también opciones rápidas' },
+  oviedo: { name: 'Oviedo', vibe: 'asturiana de interior', tip: 'Para comer rápido, no te dejes solo por el local más céntrico si hay cola.', zones: 'Casco y ensanches concentran el día a día.', rhythm: 'comida seria y también exprés' },
+  'a-coruna': { name: 'A Coruña', vibe: 'atlántica y de marisco cuando apetece', tip: 'Si buscas precio, separa el plan “especial” del de diario.', zones: 'Centro y zonas residenciales reparten la oferta.', rhythm: 'producto de mar y cocina cotidiana' },
+  coruna: { name: 'A Coruña', vibe: 'atlántica y de marisco cuando apetece', tip: 'Separa el plan especial del de diario si miras presupuesto.', zones: 'Centro y barrios con oferta distinta.', rhythm: 'mar y día a día' },
+  palma: { name: 'Palma', vibe: 'mediterránea insular', tip: 'En temporada alta el centro se satura: mira tiempos.', zones: 'Centro y ensanches con distinta presión turística.', rhythm: 'turismo + residente' },
+  'las-palmas': { name: 'Las Palmas', vibe: 'canaria y de clima suave', tip: 'El clima invita a planes flexibles; igual mira distancia real.', zones: 'Zonas costeras y de interior cambian la oferta.', rhythm: 'día a día con ritmo isleño' },
+  valladolid: { name: 'Valladolid', vibe: 'castellana y de interior', tip: 'Entre semana prioriza cercanía si el descanso es corto.', zones: 'Centro y barrios con densidad variable.', rhythm: 'comidas de diario predecibles' },
+  'rivas-vaciamadrid': { name: 'Rivas-Vaciamadrid', vibe: 'residencial del área de Madrid', tip: 'La distancia al centro importa menos que tener opciones cercanas y delivery fiable.', zones: 'Zonas residenciales y centros comerciales concentran servicios.', rhythm: 'mucho delivery y planes prácticos' }
 };
 
 function pretty(slug) {
@@ -252,205 +164,357 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 function hash(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-  return h;
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
 }
 function pick(arr, seed) {
-  return arr[seed % arr.length];
+  return arr[Math.abs(seed) % arr.length];
 }
 function cityInfo(slug) {
   if (CITY[slug]) return CITY[slug];
   return {
     name: pretty(slug),
-    vibe: 'oferta local de diario y opciones de pedir a domicilio',
-    tip: 'Prioriza tiempo total (llegar + esperar) y reseñas recientes, no solo la nota media.',
-    zones: 'Revisa zonas cercanas a ti: la mejor opción suele ser la que llega a tiempo.'
+    vibe: 'oferta local de diario y opciones a domicilio',
+    tip: 'Prioriza tiempo total y reseñas recientes, no solo la nota media.',
+    zones: 'Las mejores opciones suelen ser las cercanas que cumplen tu criterio de hoy.',
+    rhythm: 'ritmo de ciudad media española'
   };
 }
 function foodInfo(slug) {
-  if (FOOD[slug]) return FOOD[slug];
   const name = pretty(slug);
-  return {
-    name,
-    kind: `opción de ${name.toLowerCase()} adaptable al momento del día`,
-    look: 'ingredientes claros, ración suficiente y preparación cuidada',
-    time: '15–30 min orientativos',
-    budget: '€–€€',
-    tip: `Adapta ${name.toLowerCase()} a tu hambre: ración simple si vas justo, más completa si es comida principal.`
-  };
+  const n = slug.toLowerCase();
+  let kind = `preparación de ${name.toLowerCase()} adaptable al momento`;
+  let look = 'ingredientes claros, ración suficiente y buen acabado';
+  let time = '15–30 min orientativos';
+  let budget = '€–€€';
+  let tip = `Ajusta ${name.toLowerCase()} a tu hambre real: simple si vas justo, más completa si es plato principal.`;
+  let pair = 'una ensalada, pan o fruta según el momento';
+  let fail = 'ración escasa, exceso de salsa o producto poco fresco';
+
+  if (/pizza/.test(n)) {
+    kind = 'masa con tomate/queso y toppings';
+    look = 'base con punto, queso fundido y toppings sin empapar';
+    time = '15–35 min';
+    tip = 'Compara el tamaño real de la base: el precio engaña.';
+    pair = 'ensalada simple si quieres equilibrar';
+    fail = 'base pastosa o ración mini a precio de pizza grande';
+  } else if (/tortilla/.test(n)) {
+    kind = 'huevo con patata u otras bases';
+    look = 'punto jugoso o cuajado según gusto';
+    time = '20–45 min';
+    budget = '€';
+    tip = 'El punto (jugosa/cuajada) cambia el plato por completo.';
+    fail = 'aceite en exceso o tortilla reseca';
+  } else if (/sushi|ramen|noodles/.test(n)) {
+    kind = 'cocina asiática de arroz/fideos';
+    look = 'frescura, punto del arroz/fideos y toppings con sentido';
+    time = '20–40 min';
+    budget = '€€–€€€';
+    tip = 'Mira reseñas recientes de frescura y tiempos de entrega.';
+    fail = 'pescado o caldo apagado, delivery lento';
+  } else if (/hamburg|burger/.test(n)) {
+    kind = 'carne o alternativa en pan';
+    look = 'punto de la proteína y pan que aguante';
+    tip = 'Confirma si incluye guarnición y el tamaño real.';
+    fail = 'pan empapado o burger diminuta';
+  } else if (/yogur|fruta|batido|smoothie|avena|granola|porridge/.test(n)) {
+    kind = 'opción ligera y rápida';
+    look = 'ingredientes reales (fruta/yogur de verdad)';
+    time = '5–15 min';
+    budget = '€';
+    tip = 'Suma proteína o frutos secos si necesitas más saciedad.';
+    fail = 'solo azúcar o ración testimonial';
+  } else if (/pollo/.test(n)) {
+    kind = 'proteína de pollo versátil';
+    look = 'jugoso, sazonado, con guarnición real';
+    tip = 'La guarnición decide si es comida completa o incompleta.';
+    fail = 'pollo reseco sin acompañamiento';
+  } else if (/pasta|macarr|espagu/.test(n)) {
+    kind = 'pasta con salsa';
+    look = 'pasta al dente y salsa ligada';
+    time = '15–25 min';
+    tip = 'Un poco de agua de cocción ayuda a ligar la salsa.';
+    fail = 'pasta pasada o salsa aguada';
+  } else if (/crema|sopa|caldo|gazpacho/.test(n)) {
+    kind = 'plato de cuchara';
+    look = 'sabor claro del ingrediente principal y buena textura';
+    tip = 'Si es plato único, completa con proteína o pan.';
+    fail = 'textura floja o sabor plano';
+  } else if (/bocadillo|sandwich|tostada|wrap|pita/.test(n)) {
+    kind = 'formato pan/wrap fácil de comer';
+    look = 'pan con punto y relleno generoso sin desbordarse';
+    time = '5–20 min';
+    budget = '€–€€';
+    tip = 'Ideal cuando el tiempo manda; revisa que el relleno aguante el viaje.';
+    fail = 'pan gomoso o relleno escaso';
+  }
+
+  return { name, kind, look, time, budget, tip, pair, fail };
 }
 
 function parseFile(file) {
   const rel = path.relative(DIST, file).replace(/\\/g, '/');
   const p = rel.split('/');
-  // comer/city/moment/food/mod/index.html
   if (p[0] === 'comer' && p.length >= 6 && p[p.length - 1] === 'index.html') {
-    return {
-      type: 'modifier',
-      city: p[1],
-      moment: p[2],
-      food: p[3],
-      mod: p[4],
-      rel
-    };
+    return { type: 'modifier', city: p[1], moment: p[2], food: p[3], mod: p[4] };
   }
-  // city/moment/food/index.html
   if (p.length === 4 && p[3] === 'index.html' && MOMENTS[p[1]]) {
-    return { type: 'guide', city: p[0], moment: p[1], food: p[2], rel };
+    return { type: 'guide', city: p[0], moment: p[1], food: p[2] };
   }
-  // city/moment/index.html
   if (p.length === 3 && p[2] === 'index.html' && MOMENTS[p[1]]) {
-    return { type: 'moment', city: p[0], moment: p[1], rel };
+    return { type: 'moment', city: p[0], moment: p[1] };
   }
-  // city/index.html
   if (p.length === 2 && p[1] === 'index.html') {
-    return { type: 'city', city: p[0], rel };
+    return { type: 'city', city: p[0] };
+  }
+  // city/topic or national topic depth1 already city; depth2 non-moment
+  if (p.length === 3 && p[2] === 'index.html' && !MOMENTS[p[1]]) {
+    return { type: 'topic', city: p[0], topic: p[1] };
+  }
+  if (p.length === 2 && p[1] === 'index.html') {
+    return { type: 'city', city: p[0] };
   }
   return null;
+}
+
+function relatedMods(ctx) {
+  const keys = Object.keys(MODS);
+  return keys
+    .filter((k) => k !== ctx.mod)
+    .slice(0, 4)
+    .map(
+      (k) =>
+        `<a href="${SITE}/comer/${ctx.city}/${ctx.moment}/${ctx.food}/${k}/">${esc(MODS[k].label)}</a>`
+    )
+    .join(' · ');
 }
 
 function blockGuide(ctx) {
   const c = cityInfo(ctx.city);
   const f = foodInfo(ctx.food);
-  const m = MOMENTS[ctx.moment] || { label: ctx.moment, verb: 'comer', when: 'hoy', energy: 'decidir sin rodeos' };
-  const seed = hash(ctx.city + '|' + ctx.moment + '|' + ctx.food);
-  const angles = [
-    `Si ${m.verb} en ${c.name} y te apetece ${f.name.toLowerCase()}, empieza por el resultado que quieres: ligero, completo o solo “quitar el hambre”.`,
-    `En ${c.name}, ${f.name.toLowerCase()} para ${m.label} funciona cuando encaja con tu tiempo real, no con el tiempo ideal de una receta.`,
-    `Para ${m.verb} con ${f.name.toLowerCase()} en ${c.name}, el criterio útil es tiempo total + ración + precio final.`
+  const m = MOMENTS[ctx.moment];
+  const seed = hash(`${ctx.city}|${ctx.moment}|${ctx.food}|guide`);
+  const openers = [
+    `Elegir ${f.name.toLowerCase()} para ${m.verb} en ${c.name} es más fácil si empiezas por el resultado que quieres, no por una lista infinita de locales.`,
+    `En ${c.name}, ${f.name.toLowerCase()} para ${m.label} funciona cuando cuadra con tu tiempo real y tu hambre de hoy.`,
+    `Si vas a ${m.verb} con ${f.name.toLowerCase()} en ${c.name}, los tres filtros útiles son tiempo, ración y precio final.`
   ];
-  const decisions = [
-    `Define en 20 segundos: ¿cuántos minutos tienes y cuánto quieres gastar?`,
-    `Elige solo dos alternativas (esta y un plan B). Más opciones suelen empeorar la decisión.`,
-    `Si dudas entre local, delivery o casa, gana la opción que llega antes sin estropearse.`
-  ];
-  const local = [
-    `${c.name} ${c.vibe}. ${c.tip}`,
-    `${c.zones}`,
-    `Para ${m.label}, en ${c.name} suele pesar más el horario y la distancia que una carta interminable.`
-  ];
-
+  const q = m.questions;
   return `
-<section class="rf-q" id="rf-quality-content" data-rf-quality="guide">
-  <h2>Cómo elegir ${esc(f.name)} para ${esc(m.verb)} en ${esc(c.name)}</h2>
-  <p>${esc(pick(angles, seed))}</p>
-  <p><strong>Qué es:</strong> ${esc(f.kind)}. <strong>Qué mirar:</strong> ${esc(f.look)}.</p>
-  <p><strong>Tiempo orientativo:</strong> ${esc(f.time)}. <strong>Presupuesto:</strong> ${esc(f.budget)}.</p>
-  <h3>${esc(c.name)} y el momento (${esc(m.label)})</h3>
-  <p>${esc(pick(local, seed + 1))}</p>
-  <p>${esc(m.when.charAt(0).toUpperCase() + m.when.slice(1))} conviene pensar en ${esc(m.energy)}: ${esc(f.tip)}</p>
-  <h3>Checklist rápido antes de decidir</h3>
+<article class="rf-q" id="rf-quality-content" data-rf-quality="guide">
+  <h2>Guía: ${esc(f.name)} para ${esc(m.verb)} en ${esc(c.name)}</h2>
+  <p class="rf-q-lead">${esc(pick(openers, seed))}</p>
+
+  <h3>Qué es y qué mirar</h3>
+  <p><strong>${esc(f.name)}</strong> es ${esc(f.kind)}. Conviene fijarse en: ${esc(f.look)}.</p>
+  <p><strong>Tiempo orientativo:</strong> ${esc(f.time)}. <strong>Presupuesto habitual:</strong> ${esc(f.budget)}.</p>
+  <p>${esc(f.tip)} Un buen acompañamiento suele ser ${esc(f.pair)}.</p>
+  <p><strong>Señales de que no compensa:</strong> ${esc(f.fail)}.</p>
+
+  <h3>Contexto en ${esc(c.name)} (${esc(m.label)})</h3>
+  <p>${esc(c.name)} tiene ${esc(c.vibe)}. Es una ciudad con ${esc(c.rhythm)}.</p>
+  <p>${esc(c.tip)}</p>
+  <p>${esc(c.zones)}</p>
+  <p>Objetivo de este momento: ${esc(m.goal)}. Evita: ${esc(m.avoid)}.</p>
+
+  <h3>Preguntas para decidir en 1 minuto</h3>
   <ol>
-    <li>${esc(pick(decisions, seed))}</li>
-    <li>${esc(pick(decisions, seed + 1))}</li>
-    <li>${esc(pick(decisions, seed + 2))}</li>
+    <li>${esc(q[0])}</li>
+    <li>${esc(q[1])}</li>
+    <li>${esc(q[2])}</li>
   </ol>
-  <h3>Si esta no encaja</h3>
-  <p>Vuelve a la guía de <a href="${SITE}/${ctx.city}/${ctx.moment}/">${esc(m.label)} en ${esc(c.name)}</a> o <a href="${SITE}/#ruleta">gira la ruleta</a> y quédate con la primera opción razonable.</p>
-</section>`;
+
+  <h3>Casa, local o delivery</h3>
+  <ul>
+    <li><strong>Casa:</strong> controlas ingredientes y tiempo; ideal si ya tienes base en la nevera.</li>
+    <li><strong>Local:</strong> tiene sentido si está cerca y el servicio es ágil ${esc(m.when)}.</li>
+    <li><strong>Delivery:</strong> suma envío + espera real; no todo el plato viaja igual de bien.</li>
+  </ul>
+
+  <h3>Cómo cerrar sin dar vueltas</h3>
+  <ol>
+    <li>Confirma que ${esc(f.name.toLowerCase())} te encaja para ${esc(m.label)}.</li>
+    <li>Compara solo una alternativa (plan B).</li>
+    <li>Decide o <a href="${SITE}/#ruleta">gira la ruleta</a> y acepta la primera opción razonable.</li>
+  </ol>
+
+  <h3>Enlaces útiles</h3>
+  <p>
+    <a href="${SITE}/${ctx.city}/${ctx.moment}/">Más ideas de ${esc(m.label)} en ${esc(c.name)}</a> ·
+    <a href="${SITE}/${ctx.city}/">Guía de ${esc(c.name)}</a> ·
+    <a href="${SITE}/comer/${ctx.city}/${ctx.moment}/${ctx.food}/barato/">${esc(f.name)} barato en ${esc(c.name)}</a> ·
+    <a href="${SITE}/comer/${ctx.city}/${ctx.moment}/${ctx.food}/rapido/">${esc(f.name)} rápido</a>
+  </p>
+</article>`;
 }
 
 function blockModifier(ctx) {
   const c = cityInfo(ctx.city);
   const f = foodInfo(ctx.food);
-  const m = MOMENTS[ctx.moment] || { label: ctx.moment, verb: 'comer', when: 'hoy', energy: 'decidir' };
+  const m = MOMENTS[ctx.moment] || MOMENTS.cena;
   const mod = MODS[ctx.mod] || {
     label: pretty(ctx.mod),
-    focus: 'acotar la búsqueda a un criterio concreto',
-    tips: [
-      'Aplica un solo filtro principal para no bloquearte.',
-      'Compara dos opciones como máximo.',
-      'Revisa horario y tiempo total antes de confirmar.'
-    ]
+    focus: 'acotar la búsqueda',
+    checks: ['criterio principal', 'tiempo total', 'precio final'],
+    tips: ['Aplica un solo filtro.', 'Compara dos opciones.', 'Revisa horario.'],
+    win: 'Decides antes y con menos ruido.'
   };
-  const seed = hash(ctx.city + ctx.moment + ctx.food + ctx.mod);
+  const seed = hash(`${ctx.city}|${ctx.moment}|${ctx.food}|${ctx.mod}`);
+  const angle = pick(
+    [
+      `Esta ficha está optimizada para un solo criterio: <strong>${esc(mod.label)}</strong> (${esc(mod.focus)}).`,
+      `No es una guía genérica de ${esc(f.name.toLowerCase())}: prioriza ${esc(mod.focus)} en ${esc(c.name)}.`,
+      `Si tu prioridad hoy es “${esc(mod.label)}”, usa estos filtros y descarta el resto.`
+    ],
+    seed
+  );
 
   return `
-<section class="rf-q" id="rf-quality-content" data-rf-quality="modifier">
+<article class="rf-q" id="rf-quality-content" data-rf-quality="modifier">
   <h2>${esc(f.name)} ${esc(mod.label)} para ${esc(m.verb)} en ${esc(c.name)}</h2>
-  <p>Esta página no es una lista genérica: está enfocada a <strong>${esc(mod.focus)}</strong> cuando quieres ${esc(f.name.toLowerCase())} en ${esc(c.name)} ${esc(m.when)}.</p>
-  <h3>Criterio principal: ${esc(mod.label)}</h3>
+  <p class="rf-q-lead">${angle}</p>
+
+  <h3>Para quién es esta página</h3>
+  <p>Para quien quiere ${esc(m.verb)} en ${esc(c.name)} ${esc(m.when)} y ya sabe que el filtro importante es <strong>${esc(mod.label)}</strong>. Objetivo del momento: ${esc(m.goal)}.</p>
+
+  <h3>Checklist “${esc(mod.label)}”</h3>
+  <ul>
+    ${mod.checks.map((x) => `<li>${esc(x)}</li>`).join('\n    ')}
+  </ul>
   <ul>
     ${mod.tips.map((t) => `<li>${esc(t)}</li>`).join('\n    ')}
   </ul>
+  <p><strong>Cómo se nota el acierto:</strong> ${esc(mod.win)}</p>
+
   <h3>Aplicado a ${esc(f.name)}</h3>
-  <p>${esc(f.kind)}. En la práctica, mira ${esc(f.look)}. Tiempo orientativo: ${esc(f.time)}. Presupuesto habitual: ${esc(f.budget)}.</p>
+  <p>${esc(f.name)} es ${esc(f.kind)}. Mira especialmente: ${esc(f.look)}.</p>
+  <p>Tiempo orientativo: ${esc(f.time)}. Presupuesto habitual: ${esc(f.budget)}.</p>
   <p>${esc(f.tip)}</p>
-  <h3>Contexto en ${esc(c.name)}</h3>
-  <p>${esc(c.name)} ${esc(c.vibe)}. ${esc(c.tip)}</p>
+  <p>Evita conformarte si ves: ${esc(f.fail)}.</p>
+  <p>Para redondear el plato: ${esc(f.pair)}.</p>
+
+  <h3>${esc(c.name)}: contexto real</h3>
+  <p>${esc(c.name)} ofrece ${esc(c.vibe)}. ${esc(c.tip)}</p>
   <p>${esc(c.zones)}</p>
-  <h3>Cómo cerrar la decisión en 2 minutos</h3>
+  <p>Ritmo local: ${esc(c.rhythm)}. En ${esc(m.label)}, evita: ${esc(m.avoid)}.</p>
+
+  <h3>Pasos para decidir en 2 minutos</h3>
   <ol>
-    <li>Confirma que ${esc(f.name.toLowerCase())} te encaja para ${esc(m.label)}.</li>
-    <li>Aplica el filtro “${esc(mod.label)}” y descarta lo que no lo cumpla.</li>
-    <li>Elige entre dos finales o <a href="${SITE}/#ruleta">usa la ruleta</a>.</li>
+    <li>Confirma ${esc(f.name.toLowerCase())} para ${esc(m.label)}.</li>
+    <li>Aplica solo el filtro “${esc(mod.label)}” y descarta lo demás.</li>
+    <li>Quédate con 1 opción + 1 plan B, o <a href="${SITE}/#ruleta">gira la ruleta</a>.</li>
   </ol>
-  <p>Más opciones: <a href="${SITE}/${ctx.city}/${ctx.moment}/${ctx.food}/">guía de ${esc(f.name)} en ${esc(c.name)}</a> · <a href="${SITE}/${ctx.city}/${ctx.moment}/">${esc(m.label)} en ${esc(c.name)}</a></p>
-</section>`;
+
+  <h3>Otras formas de filtrar ${esc(f.name)} en ${esc(c.name)}</h3>
+  <p>${relatedMods(ctx)}</p>
+  <p>
+    <a href="${SITE}/${ctx.city}/${ctx.moment}/${ctx.food}/">Guía completa de ${esc(f.name)}</a> ·
+    <a href="${SITE}/${ctx.city}/${ctx.moment}/">${esc(m.label)} en ${esc(c.name)}</a> ·
+    <a href="${SITE}/${ctx.city}/">Todo ${esc(c.name)}</a>
+  </p>
+</article>`;
 }
 
 function blockMoment(ctx) {
   const c = cityInfo(ctx.city);
-  const m = MOMENTS[ctx.moment] || { label: ctx.moment, verb: 'comer', when: 'hoy', energy: 'decidir' };
+  const m = MOMENTS[ctx.moment];
   return `
-<section class="rf-q" id="rf-quality-content" data-rf-quality="moment">
-  <h2>Ideas para ${esc(m.verb)} en ${esc(c.name)}</h2>
-  <p>${esc(c.name)} ${esc(c.vibe)}. Para ${esc(m.label)} ${esc(m.when)}, lo útil es acotar: tiempo, hambre y presupuesto.</p>
+<article class="rf-q" id="rf-quality-content" data-rf-quality="moment">
+  <h2>${esc(pretty(m.label))} en ${esc(c.name)}: cómo elegir sin perder tiempo</h2>
+  <p class="rf-q-lead">${esc(c.name)} tiene ${esc(c.vibe)}. Para ${esc(m.verb)} ${esc(m.when)}, el objetivo es ${esc(m.goal)}.</p>
   <p>${esc(c.tip)}</p>
-  <h3>Cómo usar esta guía</h3>
-  <ol>
-    <li>Elige un plato de la lista según tu hambre real.</li>
-    <li>Abre la ficha individual para ver criterios concretos.</li>
-    <li>Si sigues dudando, <a href="${SITE}/#ruleta">gira la ruleta</a> y acepta la primera opción decente.</li>
-  </ol>
   <p>${esc(c.zones)}</p>
-</section>`;
+  <h3>Tres preguntas antes de abrir la lista</h3>
+  <ol>
+    <li>${esc(m.questions[0])}</li>
+    <li>${esc(m.questions[1])}</li>
+    <li>${esc(m.questions[2])}</li>
+  </ol>
+  <h3>Cómo usar esta página</h3>
+  <ol>
+    <li>Elige un plato según hambre real (no según antojo infinito).</li>
+    <li>Abre la ficha individual para criterios de tiempo y presupuesto.</li>
+    <li>Si sigues bloqueado, <a href="${SITE}/#ruleta">gira la ruleta</a>.</li>
+  </ol>
+  <p>Evita en este momento: ${esc(m.avoid)}. Ritmo de ${esc(c.name)}: ${esc(c.rhythm)}.</p>
+  <p><a href="${SITE}/${ctx.city}/">Ver todos los momentos en ${esc(c.name)}</a></p>
+</article>`;
 }
 
 function blockCity(ctx) {
   const c = cityInfo(ctx.city);
   return `
-<section class="rf-q" id="rf-quality-content" data-rf-quality="city">
-  <h2>Qué comer en ${esc(c.name)} según el momento</h2>
-  <p>${esc(c.name)} ${esc(c.vibe)}. En lugar de revisar apps sin fin, elige primero el momento del día y después el tipo de plato.</p>
+<article class="rf-q" id="rf-quality-content" data-rf-quality="city">
+  <h2>Qué comer en ${esc(c.name)}: guía por momento del día</h2>
+  <p class="rf-q-lead">${esc(c.name)} tiene ${esc(c.vibe)}. En lugar de scroll infinito, elige primero el momento y después el plato.</p>
   <p>${esc(c.tip)}</p>
   <p>${esc(c.zones)}</p>
+  <p>Ritmo local: ${esc(c.rhythm)}.</p>
+  <h3>Atajos por momento</h3>
   <ul>
     <li><a href="${SITE}/${ctx.city}/desayuno/">Desayuno en ${esc(c.name)}</a></li>
     <li><a href="${SITE}/${ctx.city}/almuerzo/">Almuerzo en ${esc(c.name)}</a></li>
     <li><a href="${SITE}/${ctx.city}/merienda/">Merienda en ${esc(c.name)}</a></li>
     <li><a href="${SITE}/${ctx.city}/cena/">Cena en ${esc(c.name)}</a></li>
   </ul>
-</section>`;
+  <p>También puedes <a href="${SITE}/#ruleta">girar la ruleta</a> si quieres una decisión en segundos.</p>
+</article>`;
+}
+
+function blockTopic(ctx) {
+  const c = cityInfo(ctx.city);
+  const t = pretty(ctx.topic);
+  return `
+<article class="rf-q" id="rf-quality-content" data-rf-quality="topic">
+  <h2>${esc(t)} en ${esc(c.name)}</h2>
+  <p>Guía práctica para decidir alrededor de <strong>${esc(t)}</strong> en ${esc(c.name)}, sin listas interminables.</p>
+  <p>${esc(c.tip)}</p>
+  <p>${esc(c.zones)}</p>
+  <h3>Cómo decidir</h3>
+  <ol>
+    <li>Define tiempo y presupuesto.</li>
+    <li>Elige formato (casa, local, delivery).</li>
+    <li>Compara dos opciones o usa la <a href="${SITE}/#ruleta">ruleta</a>.</li>
+  </ol>
+  <p><a href="${SITE}/${ctx.city}/">Más ideas en ${esc(c.name)}</a></p>
+</article>`;
 }
 
 const CSS = `<style id="rf-quality-css">
-.rf-q{max-width:800px;margin:24px auto;padding:8px 16px 28px;color:#1c1917;line-height:1.65}
-.rf-q h2{font-size:1.35rem;margin:0 0 12px}
-.rf-q h3{font-size:1.05rem;margin:18px 0 8px}
-.rf-q p,.rf-q li{font-size:1rem;color:#292524}
+.rf-q{max-width:820px;margin:28px auto;padding:12px 18px 36px;color:#1c1917;line-height:1.7}
+.rf-q-lead{font-size:1.08rem;color:#44403c}
+.rf-q h2{font-size:clamp(1.35rem,3vw,1.75rem);line-height:1.2;margin:0 0 12px}
+.rf-q h3{font-size:1.08rem;margin:22px 0 8px}
+.rf-q p,.rf-q li{font-size:1.02rem;color:#292524}
 .rf-q a{color:#c2410c;font-weight:700;text-decoration:none}
-.rf-q ol,.rf-q ul{padding-left:1.2rem}
+.rf-q a:hover{text-decoration:underline}
+.rf-q ol,.rf-q ul{padding-left:1.25rem}
 </style>`;
 
 function strip(html) {
-  html = html.replace(/<section class="rf-q"[\s\S]*?<\/section>/gi, '');
-  html = html.replace(/<style id="rf-quality-css">[\s\S]*?<\/style>/gi, '');
-  return html;
+  return html
+    .replace(/<article class="rf-q"[\s\S]*?<\/article>/gi, '')
+    .replace(/<section class="rf-q"[\s\S]*?<\/section>/gi, '')
+    .replace(/<style id="rf-quality-css">[\s\S]*?<\/style>/gi, '');
 }
 
 function inject(html, block) {
   if (!html.includes('rf-quality-css')) {
-    html = html.replace(/<\/head>/i, CSS + '</head>');
+    html = /<\/head>/i.test(html)
+      ? html.replace(/<\/head>/i, CSS + '</head>')
+      : CSS + html;
   }
   if (/<section class="rf-ctr-faq"/i.test(html)) {
     return html.replace(/<section class="rf-ctr-faq"/i, block + '\n<section class="rf-ctr-faq"');
   }
-  if (/<footer/i.test(html)) {
-    return html.replace(/<footer/i, block + '\n<footer');
-  }
-  return html.replace(/<\/body>/i, block + '\n</body>');
+  if (/<footer/i.test(html)) return html.replace(/<footer/i, block + '\n<footer');
+  if (/<\/main>/i.test(html)) return html.replace(/<\/main>/i, block + '\n</main>');
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, block + '\n</body>');
+  return html + block;
 }
 
 function run() {
@@ -459,7 +523,7 @@ function run() {
     return { changed: 0 };
   }
   let changed = 0;
-  const counts = { guide: 0, modifier: 0, moment: 0, city: 0 };
+  const counts = { guide: 0, modifier: 0, moment: 0, city: 0, topic: 0 };
 
   function walk(dir) {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -475,6 +539,7 @@ function run() {
         else if (ctx.type === 'modifier') block = blockModifier(ctx);
         else if (ctx.type === 'moment') block = blockMoment(ctx);
         else if (ctx.type === 'city') block = blockCity(ctx);
+        else if (ctx.type === 'topic') block = blockTopic(ctx);
         else continue;
 
         let html = fs.readFileSync(full, 'utf8');
@@ -482,14 +547,17 @@ function run() {
         html = inject(html, block);
         fs.writeFileSync(full, html, 'utf8');
         changed++;
-        counts[ctx.type]++;
+        counts[ctx.type] = (counts[ctx.type] || 0) + 1;
       }
     }
   }
 
   walk(DIST);
   console.log(
-    `[quality-content-rewrite] ${changed} páginas | guide=${counts.guide} modifier=${counts.modifier} moment=${counts.moment} city=${counts.city}`
+    `[quality-content-rewrite] MAX ${changed} pages |`,
+    Object.entries(counts)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(' ')
   );
   return { changed, counts };
 }
