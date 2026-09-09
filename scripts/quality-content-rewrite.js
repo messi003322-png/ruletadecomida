@@ -431,28 +431,17 @@ function blockGuide(ctx) {
     '</a> · ' +
     '<a href="' +
     SITE +
-    '/comer/' +
+    '/' +
     ctx.city +
     '/' +
     ctx.moment +
     '/' +
     ctx.food +
-    '/barato/">' +
+    '/">' +
     esc(f.name) +
-    ' barato en ' +
+    ' recomendado en ' +
     esc(c.name) +
-    '</a> · ' +
-    '<a href="' +
-    SITE +
-    '/comer/' +
-    ctx.city +
-    '/' +
-    ctx.moment +
-    '/' +
-    ctx.food +
-    '/rapido/">' +
-    esc(f.name) +
-    ' rápido</a>' +
+    '</a>' +
     '</p></article>'
   );
 }
