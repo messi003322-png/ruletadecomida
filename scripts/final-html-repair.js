@@ -73,6 +73,14 @@ walk(OUT, (file) => {
     robotsFixed++;
   }
 
+  // Remove empty legacy homepage section labels that add headings without useful content.
+  if (isHome) {
+    const beforeCleanup = html;
+    html = html.replace(/<h2\\b[^>]*>\\s*(?:Sobre esta idea|Consejos prácticos|Preguntas sobre esta guía)\\s*<\\/h2>/gi, '');
+    html = html.replace(/<p\\b[^>]*>\\s*Ideas locales\\s*<\\/p>/gi, '');
+    if (html !== beforeCleanup) pages++;
+  }
+
   // Replace the broken homepage title and make remaining titles safe for SERPs.
   const titleMatch = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i);
   if (isHome) {
