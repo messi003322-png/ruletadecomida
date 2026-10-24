@@ -89,15 +89,22 @@ function buildUI(cities, foodsByMoment) {
       `<button class="rf-guide-option" type="button" data-guide-moment="${slugValue}">${name}</button>`
   ).join('');
 
-  const foodButtons = PUBLIC_MOMENTS.map(([moment]) => {
-    const foods = foodsByMoment[moment] || [];
-    return foods
-      .map((slug) => {
-        const label = pretty(slug);
-        return `<button class="rf-guide-option" type="button" hidden data-guide-food="${esc(slug)}" data-guide-food-moment="${moment}" data-guide-food-label="${esc(label)}">${esc(label)}</button>`;
-      })
-      .join('');
-  }).join('');
+  // Render each food only once, recording the moments in which it is available.
+  // This avoids repeating the same list four times in the homepage HTML.
+  const foodMoments = new Map();
+  PUBLIC_MOMENTS.forEach(([moment]) => {
+    (foodsByMoment[moment] || []).forEach((slug) => {
+      if (!foodMoments.has(slug)) foodMoments.set(slug, []);
+      foodMoments.get(slug).push(moment);
+    });
+  });
+  const foodButtons = [...foodMoments.entries()]
+    .sort(([a], [b]) => pretty(a).localeCompare(pretty(b), 'es'))
+    .map(([slug, moments]) => {
+      const label = pretty(slug);
+      return `<button class="rf-guide-option" type="button" hidden data-guide-food="${esc(slug)}" data-guide-food-moments="${moments.join(',')}" data-guide-food-label="${esc(label)}">${esc(label)}</button>`;
+    })
+    .join('');
 
   const cityButtons = cities
     .map(
@@ -150,7 +157,8 @@ function buildScript() {
 
     function showFoodsFor(m){
       foodsBox.querySelectorAll('[data-guide-food]').forEach(function(btn){
-        btn.hidden = btn.getAttribute('data-guide-food-moment') !== m;
+        var moments = (btn.getAttribute('data-guide-food-moments') || '').split(',');
+        btn.hidden = moments.indexOf(m) === -1;
         btn.classList.remove('is-active');
       });
     }
