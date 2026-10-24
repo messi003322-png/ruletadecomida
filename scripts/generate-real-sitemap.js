@@ -37,11 +37,35 @@ function shouldInclude(file) {
   if (rel.startsWith('comer/')) return false;
   if (rel.startsWith('guia/')) return false;
   if (rel.includes('/assets/')) return false;
-  // Excluir si el HTML tiene noindex
+  // Incluir solo HTML indexable con señales mínimas de calidad técnica.
   try {
     const html = fs.readFileSync(file, 'utf8');
-    if (/content=["'][^"']*noindex/i.test(html)) return false;
-  } catch (_) {}
+    if (/<meta\\s+[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html)) return false;
+    if (/<meta\\s+[^>]*content=["'][^"']*noindex[^"']*["'][^>]*name=["']robots["']/i.test(html)) return false;
+
+    const title = html.match(/<title\\b[^>]*>([\\s\\S]*?)<\\/title>/i)?.[1]?.replace(/<[^>]+>/g, '').trim() || '';
+    const h1 = html.match(/<h1\\b[^>]*>([\\s\\S]*?)<\\/h1>/i)?.[1]?.replace(/<[^>]+>/g, '').trim() || '';
+    const description = html.match(/<meta\\s+[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i)?.[1] || '';
+    const canonical = html.match(/<link\\s+[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i)?.[1] || '';
+    const visibleText = html
+      .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')
+      .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&(?:nbsp|amp|lt|gt|quot|#39);/gi, ' ')
+      .replace(/\\s+/g, ' ')
+      .trim();
+
+    // Evitar que una URL no canónica o una página casi vacía se cuele en el sitemap.
+    if (!title || !h1 || description.trim().length < 60 || visibleText.length < 300 || !canonical) return false;
+    const expected = new URL(toUrl(file));
+    const actual = new URL(canonical, SITE);
+    if (actual.origin !== expected.origin) return false;
+    const expectedPath = expected.pathname.endsWith('/') ? expected.pathname : expected.pathname + '/';
+    const actualPath = actual.pathname.endsWith('/') ? actual.pathname : actual.pathname + '/';
+    if (actualPath !== expectedPath || actual.search || actual.hash) return false;
+  } catch (_) {
+    return false;
+  }
   return true;
 }
 
