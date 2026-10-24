@@ -15,6 +15,16 @@
       "source": "/guia/:food/:city/",
       "destination": "/:city/:food/",
       "permanent": true
+    },
+    {
+      "source": "/comer/:city/:moment/:food/:intent",
+      "destination": "/:city/:moment/:food/",
+      "permanent": true
+    },
+    {
+      "source": "/comer/:city/:moment/:food/:intent/",
+      "destination": "/:city/:moment/:food/",
+      "permanent": true
     }
   ],
   "headers": [
